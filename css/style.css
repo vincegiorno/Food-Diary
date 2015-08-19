@@ -1,0 +1,36 @@
+body {
+    height: 900px;
+}
+#totals-div {
+    background-color: aquamarine;
+    height: 900px;
+}
+
+#display-div {
+    background-color: bisque;
+    height: 900px;
+}
+
+.table {
+    margin-bottom: 5px;
+}
+
+.form-group {
+    margin-bottom: 5px
+}
+
+.form-group label {
+    font-size: 16px;
+}
+
+.checkbox {
+    margin-top: 0;
+}
+
+
+@media (min-width: 900px) {
+    .container {
+        width: 900px;
+        align-content: center;
+    }
+}
