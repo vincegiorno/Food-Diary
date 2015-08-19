@@ -17,7 +17,8 @@ var TotalsView = Backbone.View.extend ({
     el: '#table-div',
     template: _.template($('#totals-template').html()),
     events: {
-        
+        "click #search-btn": "handleSearch",
+        "keypress  
     }
     initialize: function(){
         this.render;
