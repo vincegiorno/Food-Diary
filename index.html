@@ -15,25 +15,29 @@
 <body>
 <div class="container">
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-xs-12">
             <h1>My Food diary</h1>
         </div>
     </div>
     
     <div class="row">
         <div class="col-xs-12 col-sm-4">
-            <h3>Current day totals</h3>
-            <div id="table-div"></div>
-        
+            <h3 class="pull-left" >Current day totals</h3>
+            <button type="button" class="btn btn-primary pull-right">New day</button>
+            <div id="totals-div"></div>
+            <div id="previous-days"></div>
         </div>
 
         <div class= "col-xs-12 col-sm-8">
+            <div id="table-title">
+                <h3>Today's Food</h3>
+            </div>
             <table id="food-table">
                 <tr>
                     <th colspan="5">Item</th>
                     <th>Calories</th>
-                    <th>Tot fat (g)</th>
-                    <th>Sat fat (g)</th>
+                    <th>Tot fat</th>
+                    <th>Sat fat</th>
                     <th>Sodium (mg)</th>
                     <th id="toggle">Servings</th>
                 </tr>
@@ -58,11 +62,11 @@
         <td colspan="2"><b>Calories</b>:  <%= calories %></%></td>
     </tr>
     <tr>
-        <td><b>Fat</b>:  <%= totFat %></%></td>
-        <td><b>(saturated)</b>:  <%= satFat %></%></td>
+        <td><b>Total fat (g)</b>:  <%= totFat %></%></td>
+        <td><b>(saturated, g)</b>:  <%= satFat %></%></td>
     </tr>
     <tr>
-        <td colspan="2"><b>Sodium</b>:  <%= sodium %></%></td>
+        <td colspan="2"><b>Sodium (mg)</b>:  <%= sodium %></%></td>
     </tr>
     </table>
     <form>
@@ -80,7 +84,12 @@
     </script>
     
     <script type="text/template" id="food-template">
-        
+        <td colspan="5"><%= item %></td>
+        <td><%= calories %></td>
+        <td><%= totFat %></td>
+        <td><%= satFat %></td>
+        <td><%= sodium %></td>
+        <td class="option"><%= option %></td>
     </script>
     
 </body>

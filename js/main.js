@@ -11,50 +11,110 @@ var Totals = Backbone.Model.extend({
     }
 });
 
-var totals = new Totals
+var msgService = _.extend({}, Backbone.Events);
+    
+var totals = new Totals;
 
 var TotalsView = Backbone.View.extend({
-    el: '#table-div',
+    
+    el: '#totals-div',
+    
     template: _.template($('#totals-template').html()),
+    
     events: {
         'click #search-btn': 'search',
         'keypress': 'searchOnEnter'  
     },
-    initialize: function(){
+    
+    initialize: function(params){
+        this.messages = params.messages;
         this.render();   
         this.listenTo(this.model, 'change', this.render);
+  		this.messages.on("addFood", this.updateTotals, this);
+  		this.messages.on("addServing", this.updateTotals, this);
     },
+    
     render: function() {
-        this.$el.html(this.template(this.model.toJSON()));
+        this.$el.append(this.template(this.model.toJSON()));
         return this;
     },
-    updateOnEnter: function(e) {
+        
+    searchOnEnter: function(e) {
       if (e.keyCode == 13) this.search();
     },
+    
     search: function() {
-        console.log('search called');
+        //TODO: add search functionality, message on API success
+        //TODO: message on Food List call -> .where(item contains string), set false flag in case no hits
     }
 });
+    
+var Days = Backbone.Collection.extend({
+    
+    model: Totals,
+    
+    localStorage: new Backbone.LocalStorage("food-diary-days"),
+})
 
 var Food = Backbone.Model.extend({
     defaults: function() {
       return {
-          servings: 1
+          servings: 1,
+          today: true
       };
-  },
-    
-    changeServings: function(num) {
-        this.set({servings: num});
     }
 });
     
-var FoodListView = Backbone.View.extend({
-    el: '#my-list-div'
+var FoodView = Backbone.View.extend({
+    tagName: 'tr',
+    
+    template: _.template($('#food-template').html()),
+    
+    events: {
+        'click .option': 'addIfLink',
+        'dblclick .option': 'incrementServings'
+    },
+    
+    initialize: function() {
+        this.messages = params.messages;
+        this.render();
+        this.listenTo(this.model, 'change', this.render);
+        
+    },
+    
+    addIfLink: function() {
+       if (this.$('.option').html() === 'Add today') {
+           this.messages.trigger('addFood', this.model);
+       }
+    },
+    
+    incrementServings: function() {
+        var newServings = this.get('servings') + 1;
+        this.set({servings: newServings});
+        this.messages.trigger('addServing', this.model);
+    }
+});
+    
+var FoodList = Backbone.Collection.extend({
+    
+    model: Food,
+    
+    localStorage: new Backbone.LocalStorage("food-diary-foods"),
+//TODO:  local storage 
 });
 
+var FoodListView = Backbone.View.extend({
+//TODO: remove on search().success    
+});  
 
-var totalsView = new TotalsView({model: totals});
+var ResultsList = Backbone.Collection.extend({
     
-var msgService = _.extend({}, Backbone.Events);
+});
     
+var SearchResultsView = Backbone.View.extend({
+ //TODO: Done button; hidden in FoodListView, remove on Done   
+});  
+
+var totalsView = new TotalsView({model: totals}, {messages: msgService});
+        
 });
