@@ -11,6 +11,10 @@ body {
     height: 900px;
 }
 
+h1 {
+    align-content: center;
+}
+
 .table {
     margin-bottom: 5px;
 }
