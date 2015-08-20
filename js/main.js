@@ -1,6 +1,6 @@
 $(function(){
 
-var Totals = Backbone.Model.extend ({
+var Totals = Backbone.Model.extend({
     defaults: function() {
       return {
         calories: 0,
@@ -13,12 +13,12 @@ var Totals = Backbone.Model.extend ({
 
 var totals = new Totals
 
-var TotalsView = Backbone.View.extend ({
+var TotalsView = Backbone.View.extend({
     el: '#table-div',
     template: _.template($('#totals-template').html()),
     events: {
-        "click #search-btn": "search",
-        "keypress": "searchOnEnter"  
+        'click #search-btn': 'search',
+        'keypress': 'searchOnEnter'  
     },
     initialize: function(){
         this.render();   
@@ -36,9 +36,25 @@ var TotalsView = Backbone.View.extend ({
     }
 });
 
-
+var Food = Backbone.Model.extend({
+    defaults: function() {
+      return {
+          servings: 1
+      };
+  },
+    
+    changeServings: function(num) {
+        this.set({servings: num});
+    }
+});
+    
+var FoodListView = Backbone.View.extend({
+    el: '#my-list-div'
+});
 
 
 var totalsView = new TotalsView({model: totals});
+    
+var msgService = _.extend({}, Backbone.Events);
     
 });

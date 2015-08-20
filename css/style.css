@@ -1,6 +1,11 @@
 body {
     height: 900px;
 }
+
+.container {
+    margin: 0 auto;
+}
+
 #totals-div {
     background-color: aquamarine;
     height: 900px;
@@ -12,11 +17,19 @@ body {
 }
 
 h1 {
-    align-content: center;
+    text-align: center;
+}
+
+h3 {
+    margin-top: 5px;
 }
 
 .table {
     margin-bottom: 5px;
+}
+
+#food-table {
+    margin-top: 5px;
 }
 
 .form-group {
@@ -32,9 +45,9 @@ h1 {
 }
 
 
-@media (min-width: 900px) {
+@media (orientation: landscape), (min-width: 900px) {
     .container {
-        width: 900px;
+        max-width: 1000px;
         align-content: center;
     }
 }
