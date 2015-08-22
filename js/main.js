@@ -1,12 +1,18 @@
 $(function(){
 
+var id = localStorage.getItem('food-diary-id');
+if (!id) {
+    id = Date.now();
+    localStorage.setItem('food-diary-id', id);
+}
+    
 var Totals = Backbone.Model.extend({
     defaults: function() {
       return {
         calories: 0,
-        sodium: 0,
         totFat: 0,
-        satFat: 0
+        satFat: 0,
+        sodium: 0
       };
     }
 });
@@ -22,6 +28,7 @@ var TotalsView = Backbone.View.extend({
     template: _.template($('#totals-template').html()),
     
     events: {
+        'click #new-day-btn': 'newDay',
         'click #search-btn': 'search',
         'keypress': 'searchOnEnter'  
     },
@@ -38,23 +45,61 @@ var TotalsView = Backbone.View.extend({
         this.$el.append(this.template(this.model.toJSON()));
         return this;
     },
+    
+    newDay: function() {
+        days.create({
+            calories: this.model.calories,
+            totFat: this.model.totFat,
+            satFat: this.model.satFat,
+            sodium: this.model.sodium,
+            date: Date.now()
+        })
+        this.model.save( {
+            calories: 0,
+            totFat: 0,
+            satFat: 0,
+            sodium: 0
+            
+        });
+        this.messages.trigger('changeDay', this.model);
+    },
         
     searchOnEnter: function(e) {
       if (e.keyCode == 13) this.search();
     },
     
     search: function() {
-        //TODO: add search functionality, message on API success
-        //TODO: message on Food List call -> .where(item contains string), set false flag in case no hits
+        searchPhrase = $('#searchbox').val();
+        if ($('#list-search').prop('checked')) {
+            this.messages.trigger('searchList', searchPhrase);
+        } else {
+            
+            
+            
+            
+            this.messages.trigger('searchAPI', searchPhrase);
+        }
+    },
+    
+    updateTotals: function(data) {
+        this.model.save({
+            calories: calories + data.calories,
+            totFat: totFat + data.totFat,
+            satFat: satFat + data.satFat,
+            sodium: sodium + data.sodium
+
+        })
     }
 });
     
-var Days = Backbone.Collection.extend({
+var Days = Backbone.Firebase.Collection.extend({
     
     model: Totals,
     
-    localStorage: new Backbone.LocalStorage("food-diary-days"),
-})
+    url: fbUrl + 'food-diary/' + id + '/days',
+});
+
+days = new Days;
 
 var Food = Backbone.Model.extend({
     defaults: function() {
@@ -89,18 +134,16 @@ var FoodView = Backbone.View.extend({
     },
     
     incrementServings: function() {
-        var newServings = this.get('servings') + 1;
-        this.set({servings: newServings});
+        this.model.save({servings: servings + 1});
         this.messages.trigger('addServing', this.model);
     }
 });
     
-var FoodList = Backbone.Collection.extend({
+var FoodList = Backbone.Firebase.Collection.extend({
     
     model: Food,
     
-    localStorage: new Backbone.LocalStorage("food-diary-foods"),
-//TODO:  local storage 
+    url: fbUrl + 'food-diary/' + id + '/food',
 });
 
 var FoodListView = Backbone.View.extend({
