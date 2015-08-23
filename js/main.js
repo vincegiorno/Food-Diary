@@ -5,6 +5,8 @@ if (!id) {
     id = Date.now();
     localStorage.setItem('food-diary-id', id);
 }
+
+var title = $('#table-title');
     
 var Totals = Backbone.Model.extend({
     defaults: function() {
@@ -30,10 +32,10 @@ var TotalsView = Backbone.View.extend({
     events: {
         'click #new-day-btn': 'newDay',
         'click #search-btn': 'search',
-        'keypress': 'searchOnEnter'  
+        'keypress': 'searchOnEnter'
     },
     
-    initialize: function(params){
+    initialize: function(params) {
         this.messages = params.messages;
         this.render();   
         this.listenTo(this.model, 'change', this.render);
@@ -91,10 +93,10 @@ var TotalsView = Backbone.View.extend({
     
     updateTotals: function(data) {
         this.model.save({
-            calories: calories + data.calories,
-            totFat: totFat + data.totFat,
-            satFat: satFat + data.satFat,
-            sodium: sodium + data.sodium
+            calories: this.model.get('calories') + data.get('calories'),
+            totFat: this.model.get('totFat') + data.get('totFat'),
+            satFat: this.model.get('satFat') + data.get('satFat'),
+            sodium: this.model.get('sodium') + data.get('sodium')
 
         })
     }
@@ -136,8 +138,11 @@ var FoodView = Backbone.View.extend({
         
     },
     
-    render: function() {
+    render: function(optionAdd) {
         this.$el.html(this.template(this.model.toJSON()));
+        if (optionAdd) {
+            this.$('.option').html('Add today');
+        }
         return this;
     },
     
@@ -148,7 +153,7 @@ var FoodView = Backbone.View.extend({
     },
     
     incrementServings: function() {
-        this.model.save({servings: parseInt(servings) + 1});
+        this.model.save({servings: parseInt(this.model.get('servings') + 1});
         this.messages.trigger('addServing', this.model);
     }
 });
@@ -170,22 +175,23 @@ var FoodListView = Backbone.View.extend({
         this.showToday();
         this.listenTo(this.messages, 'searchList', this.showResults);
         this.listenTo(this.messages, 'searchAPI', this.remove);
-        this.listenTo(this.messages, 'showAll', this.showAll)
+        this.listenTo(this.messages, 'showAll', this.showAll);
+        this.listenTo(this.messages, 'addFood', this.addFood);
     },
     
-    render: function() {
+    render: function(optionAdd) {
         var view;
         foodList.each(function(food) {
             view = new FoodView({model: food});
             if (!food.model.get('show') {
                 view.$el.addClass('hidden');
             }
-            view.render().$el.appendTo($('#food-table'));
+            view.render(optionAdd).$el.appendTo($('#food-table'));
         });
     },
     
     showToday: function() {
-        $('#table-title').html('Today\'s Food');
+        title.html('Today\'s Food');
         foodList.each(function(food) {
             if (food.model.get('today')) {
                 food.model.set({show: true});
@@ -195,7 +201,8 @@ var FoodListView = Backbone.View.extend({
     };
     
     showResults: function(phrase) {
-        var words = phrase.split(' ');
+        var words = phrase.split(' '),
+            count = 0;
         foodlist.each(function(food) {
             var showThis = true;
             var item = food.model.get('item');
@@ -206,24 +213,30 @@ var FoodListView = Backbone.View.extend({
                 }
             }
             food.model.set({show: showThis});
+            food.model.set({servings: 'Add today'});
+            count += 1;
         });
-        this.render;
+        if (!count) {
+            title.html('Foods on my list');
+        } else {
+            title.html('try again or search the database');
+        }
+        this.render(true);
     },
     
     showAll: function() {
         foodList.each(function(food) {
             food.model.set({show; true});
         });
-    };
-        
+        this.render(true);
+    },
+    
+    addFood: function(food) {
+        food.set({today: true});
+        this.showToday;
+    }        
 });  
 
-var ResultsList = Backbone.Collection.extend({
-    
-});
-    
-var resultsList;
-    
 var SearchResultsView = Backbone.View.extend({
  //TODO: Done button; hidden in FoodListView, remove on Done   
 });  
