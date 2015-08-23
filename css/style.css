@@ -41,6 +41,10 @@ h3 {
     font-size: 16px;
 }
 
+#searching {
+    padding-left: 5px;
+}
+
 .checkbox {
     margin-top: 0;
 }

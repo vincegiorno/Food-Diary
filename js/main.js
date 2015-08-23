@@ -73,12 +73,20 @@ var TotalsView = Backbone.View.extend({
         if ($('#list-search').prop('checked')) {
             this.messages.trigger('searchList', searchPhrase);
         } else {
-            
-            
-            
-            
-            this.messages.trigger('searchAPI', searchPhrase);
+            searchAPI(searchPhrase);
         }
+    },
+    
+    searchAPI: function(phrase) {
+        var searchWords = escape(phrase);
+        var queryUrl = ntrxUrl + searchWords;
+        $('#searching').text('Searching...');
+        $.getJSON(queryUrl,ntrxParams)
+            .done(function(result) {
+                var results = result.hits;
+                resultsList = new ResultsList;
+                
+        })
     },
     
     updateTotals: function(data) {
@@ -105,7 +113,8 @@ var Food = Backbone.Model.extend({
     defaults: function() {
       return {
           servings: 1,
-          today: true
+          today: true,
+          add: "Add today"
       };
     }
 });
@@ -127,6 +136,11 @@ var FoodView = Backbone.View.extend({
         
     },
     
+    render: function() {
+        this.$el.html(this.template(this.model.toJSON()));
+        return this;
+    },
+    
     addIfLink: function() {
        if (this.$('.option').html() === 'Add today') {
            this.messages.trigger('addFood', this.model);
@@ -134,10 +148,11 @@ var FoodView = Backbone.View.extend({
     },
     
     incrementServings: function() {
-        this.model.save({servings: servings + 1});
+        this.model.save({servings: parseInt(servings) + 1});
         this.messages.trigger('addServing', this.model);
     }
 });
+    
     
 var FoodList = Backbone.Firebase.Collection.extend({
     
@@ -145,14 +160,69 @@ var FoodList = Backbone.Firebase.Collection.extend({
     
     url: fbUrl + 'food-diary/' + id + '/food',
 });
+    
+var foodList = new FoodList;
 
 var FoodListView = Backbone.View.extend({
-//TODO: remove on search().success    
+    
+    initialize: function() {
+        this.messages = params.messages;
+        this.showToday();
+        this.listenTo(this.messages, 'searchList', this.showResults);
+        this.listenTo(this.messages, 'searchAPI', this.remove);
+        this.listenTo(this.messages, 'showAll', this.showAll)
+    },
+    
+    render: function() {
+        var view;
+        foodList.each(function(food) {
+            view = new FoodView({model: food});
+            if (!food.model.get('show') {
+                view.$el.addClass('hidden');
+            }
+            view.render().$el.appendTo($('#food-table'));
+        });
+    },
+    
+    showToday: function() {
+        $('#table-title').html('Today\'s Food');
+        foodList.each(function(food) {
+            if (food.model.get('today')) {
+                food.model.set({show: true});
+            }
+        });
+        this.render();
+    };
+    
+    showResults: function(phrase) {
+        var words = phrase.split(' ');
+        foodlist.each(function(food) {
+            var showThis = true;
+            var item = food.model.get('item');
+            for (var i = words.length; i; i--) {
+                if (item.indexOf(words[i]) < 0) {
+                    showThis = false;
+                    break;
+                }
+            }
+            food.model.set({show: showThis});
+        });
+        this.render;
+    },
+    
+    showAll: function() {
+        foodList.each(function(food) {
+            food.model.set({show; true});
+        });
+    };
+        
 });  
 
 var ResultsList = Backbone.Collection.extend({
     
 });
+    
+var resultsList;
     
 var SearchResultsView = Backbone.View.extend({
  //TODO: Done button; hidden in FoodListView, remove on Done   
