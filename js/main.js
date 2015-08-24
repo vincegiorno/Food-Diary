@@ -6,8 +6,12 @@ if (!id) {
     localStorage.setItem('food-diary-id', id);
 }
 
-var title = $('#table-title');
-    
+var searching = $('#searching'),
+    title = $('#table-title'),
+    done = $('#done'),
+    optionHead = $('option-head'),
+    msgService = _.extend({}, Backbone.Events);
+
 var Totals = Backbone.Model.extend({
     defaults: function() {
       return {
@@ -19,7 +23,6 @@ var Totals = Backbone.Model.extend({
     }
 });
 
-var msgService = _.extend({}, Backbone.Events);
     
 var totals = new Totals;
 
@@ -30,9 +33,10 @@ var TotalsView = Backbone.View.extend({
     template: _.template($('#totals-template').html()),
     
     events: {
-        'click #new-day-btn': 'newDay',
+        'click #new-day': 'newDay',
         'click #search-btn': 'search',
-        'keypress': 'searchOnEnter'
+        'keypress': 'searchOnEnter',
+        'click show-list': this.messages.trigger('showMy List')
     },
     
     initialize: function(params) {
@@ -80,14 +84,18 @@ var TotalsView = Backbone.View.extend({
     },
     
     searchAPI: function(phrase) {
-        var searchWords = escape(phrase);
+        var self = this,
+            searchWords = escape(phrase);
         var queryUrl = ntrxUrl + searchWords;
-        $('#searching').text('Searching...');
+        searching.text('Searching...');
         $.getJSON(queryUrl,ntrxParams)
             .done(function(result) {
                 var results = result.hits;
-                resultsList = new ResultsList;
-                
+                self.messages.trigger('successAPI');
+                apiResultsView = new ApiResultsView({model: results, messages: self.messages});
+        })
+            .fail(function() {
+            searching.html
         })
     },
     
@@ -102,6 +110,8 @@ var TotalsView = Backbone.View.extend({
     }
 });
     
+var totalsView = new TotalsView({model: totals}, {messages: msgService});
+    
 var Days = Backbone.Firebase.Collection.extend({
     
     model: Totals,
@@ -109,14 +119,13 @@ var Days = Backbone.Firebase.Collection.extend({
     url: fbUrl + 'food-diary/' + id + '/days',
 });
 
-days = new Days;
+var days = new Days;
 
 var Food = Backbone.Model.extend({
     defaults: function() {
       return {
           servings: 1,
-          today: true,
-          add: "Add today"
+          today: true
       };
     }
 });
@@ -141,13 +150,13 @@ var FoodView = Backbone.View.extend({
     render: function(optionAdd) {
         this.$el.html(this.template(this.model.toJSON()));
         if (optionAdd) {
-            this.$('.option').html('Add today');
+            this.$('.option').html('Add');
         }
         return this;
     },
     
     addIfLink: function() {
-       if (this.$('.option').html() === 'Add today') {
+       if (this.$('.option').html() === 'Add') {
            this.messages.trigger('addFood', this.model);
        }
     },
@@ -170,20 +179,25 @@ var foodList = new FoodList;
 
 var FoodListView = Backbone.View.extend({
     
+    events: {
+        'click #done': 'showToday'
+    },
+    
     initialize: function() {
         this.messages = params.messages;
         this.showToday();
         this.listenTo(this.messages, 'searchList', this.showResults);
-        this.listenTo(this.messages, 'searchAPI', this.remove);
+        this.listenTo(this.messages, 'successAPI', this.remove);
         this.listenTo(this.messages, 'showAll', this.showAll);
         this.listenTo(this.messages, 'addFood', this.addFood);
+        this.listenTo(this.messages, 'showMyList', this.showAll);
     },
     
     render: function(optionAdd) {
         var view;
         foodList.each(function(food) {
             view = new FoodView({model: food});
-            if (!food.model.get('show') {
+            if (!food.model.get('show')) {
                 view.$el.addClass('hidden');
             }
             view.render(optionAdd).$el.appendTo($('#food-table'));
@@ -192,13 +206,15 @@ var FoodListView = Backbone.View.extend({
     
     showToday: function() {
         title.html('Today\'s Food');
+        optionHead.html('Servings');
+        done.addClass('hidden');
         foodList.each(function(food) {
             if (food.model.get('today')) {
                 food.model.set({show: true});
             }
         });
         this.render();
-    };
+    },
     
     showResults: function(phrase) {
         var words = phrase.split(' '),
@@ -216,8 +232,10 @@ var FoodListView = Backbone.View.extend({
             food.model.set({servings: 'Add today'});
             count += 1;
         });
-        if (!count) {
-            title.html('Foods on my list');
+        if (count) {
+            title.html('Foods found on my list');
+            optionHead.html('Add today');
+            done.removeClass('hidden');
         } else {
             title.html('try again or search the database');
         }
@@ -225,6 +243,10 @@ var FoodListView = Backbone.View.extend({
     },
     
     showAll: function() {
+        if (title.html() === 'My Food List') {
+            return;
+        }
+        title.html('My Food List');
         foodList.each(function(food) {
             food.model.set({show; true});
         });
@@ -235,12 +257,58 @@ var FoodListView = Backbone.View.extend({
         food.set({today: true});
         this.showToday;
     }        
-});  
+});
+        
+var foodListView = new FoodListView;
 
-var SearchResultsView = Backbone.View.extend({
- //TODO: Done button; hidden in FoodListView, remove on Done   
-});  
+var ApiResultsView = Backbone.View.extend({
+    
+    found: null;
+    
+    template
+    
+    events: {
+        'click #done': 'switchView'
+    },
+    
+    initialize: function(params) {
+        this.model = params.model;
+        this.messages = params.messages;
+        this.listenTo(this.messages, 'addFood', this.addFood);
+        this.render();
+        optionHead.html('Add today');
+    },
+    
+    render: function() {
+        var view;
+        this.model.each(function(item) {
+            view = new FoodView({
+                itemId: newFood.item_id,
+                item: newFood.item_name,
+                calories: newFood.nf_calories,
+                totFat: newFood.nf_total_fat,
+                satFat: newFood.nf_saturated_fat,
+                sodium: newFood.nf_sodium,
+            });
+            view.render(true).$el.appendTo($('#food-table'));
+        });
+    },
+    
+    switchView: function() {
+        this.remove();
+        foodListView = new FoodListView;
+    },
+    
+    addFood: function(food) {
+        this.found = foodList.findWhere({itemId: food.get('id')});
+        if (found) {
+            return;
+        } else {
+            foodList.create(food);
+        }
+    }
+});
 
-var totalsView = new TotalsView({model: totals}, {messages: msgService});
+var apiResultsView; // only initialized on search
         
 });

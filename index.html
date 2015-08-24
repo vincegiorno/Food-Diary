@@ -23,13 +23,14 @@
     <div class="row">
         <div class="col-xs-12 col-sm-4">
             <h3 class="pull-left" >Current day totals</h3>
-            <button type="button" class="btn btn-primary pull-right">New day</button>
+            <button id="new-day" type="button" class="btn btn-primary pull-right">New day</button>
             <div id="totals-div"></div>
             <div id="previous-days"></div>
         </div>
 
         <div class= "col-xs-12 col-sm-8">
             <h3 id="table-title">Today's Food</h3>
+            <button id="done" type="button" class="btn btn-primary pull-right">Done</button>
             <table id="food-table">
                 <tr>
                     <th colspan="5">Item</th>
@@ -37,7 +38,7 @@
                     <th>Tot fat</th>
                     <th>Sat fat</th>
                     <th>Sodium (mg)</th>
-                    <th id="toggle">Servings</th>
+                    <th id="option-head">Servings</th>
                 </tr>
             </table>
         </div>
@@ -73,6 +74,7 @@
             <label for="search">Search for online nutritional information</label>
             <input type="text" class="form-control" id="searchbox" placeholder="Ex: frozen broccoli with cheese sauce">
             <input id="search-btn" class="btn btn-default" type="submit" value="Submit">
+            <input id="show-list" class="btn btn-default pull-right" type="submit" value="Show My Food List">
             <div id="searching" class="pull-left></div>
         </div>
         <div class="checkbox">
