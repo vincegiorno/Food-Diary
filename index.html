@@ -34,10 +34,11 @@
             <table id="food-table">
                 <tr>
                     <th colspan="5">Item</th>
-                    <th>Calories</th>
+                    <th>Brand</th>
+                    <th>Cal</th>
                     <th>Tot fat</th>
                     <th>Sat fat</th>
-                    <th>Sodium (mg)</th>
+                    <th>Sod</th>
                     <th id="option-head">Servings</th>
                 </tr>
             </table>
@@ -71,22 +72,25 @@
     </table>
     <form>
         <div class="form-group">
-            <label for="search">Search for online nutritional information</label>
+            <label id="search-label" for="search">Search for nutrition information</label>
             <input type="text" class="form-control" id="searchbox" placeholder="Ex: frozen broccoli with cheese sauce">
             <input id="search-btn" class="btn btn-default" type="submit" value="Submit">
             <input id="show-list" class="btn btn-default pull-right" type="submit" value="Show My Food List">
-            <div id="searching" class="pull-left></div>
-        </div>
-        <div class="checkbox">
-            <label>
-                <input id="list-search" type="checkbox"> Check here to search My Food List instead
-            </label>
+            <div class="checkbox">
+                <label>
+                    <input id="list-search" type="checkbox">Check to search My Food List instead
+                </label>
+            </div>
         </div>
     </form>
+    <div id="searching" class="pull-left">searching</div>
+    
+    
     </script>
     
     <script type="text/template" id="food-template">
         <td colspan="5"><%= item %></td>
+        <td><%= brand %></td>
         <td><%= calories %></td>
         <td><%= totFat %></td>
         <td><%= satFat %></td>
