@@ -10,8 +10,8 @@ var searching = $('#searching'),
     title = $('#table-title'),
     done = $('#done'),
     optionHead = $('#option-head'),
+    placeholder = $('#placeholder');
     messages = _.extend({}, Backbone.Events);
-$('#searching').html('<p>Searching...</p>');
 
 var Totals = Backbone.Model.extend({
     defaults: function() {
@@ -305,8 +305,10 @@ var ApiResultsView = Backbone.View.extend({
                 servings: 1
             }, messages: messages});
             view.$('.option').html('Add');
-            view.$el.appendTo($('#food-table'));
+            this.$el.append(view.$el);
         }
+        placeholder.replaceWith(this.$el.html());
+        done.removeClass('hidden');
     },
     
     switchView: function() {
