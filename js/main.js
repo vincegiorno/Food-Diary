@@ -10,8 +10,13 @@ var searching = $('#searching'),
     title = $('#table-title'),
     done = $('#done'),
     optionHead = $('#option-head'),
-    placeholder = $('#placeholder');
+    placeholder = $('#placeholder'),
     messages = _.extend({}, Backbone.Events);
+    
+Backbone.View.prototype.close = function() {
+    this.undelegateEvents();
+    this.remove();
+}
 
 var Totals = Backbone.Model.extend({
     defaults: function() {
@@ -44,7 +49,6 @@ var TotalsView = Backbone.View.extend({
     events: {
         'click #new-day': 'newDay',
         'click #search-btn': 'search',
-        //'keypress': 'searchOnEnter',
         'click #show-list': 'showListMessage'
     },
     
@@ -72,10 +76,6 @@ var TotalsView = Backbone.View.extend({
         return false;
     },
         
-    /*searchOnEnter: function(e) {
-      if (e.keyCode == 13) this.search();
-    },*/
-    
     search: function() {
         searchPhrase = $('#searchbox').val();
         if ($('#list-search').prop('checked')) {
@@ -192,7 +192,7 @@ var FoodListView = Backbone.View.extend({
         this.messages = params.messages;
         this.showToday();
         this.listenTo(this.messages, 'searchList', this.showResults);
-        this.listenTo(this.messages, 'successAPI', this.remove);
+        this.listenTo(this.messages, 'successAPI', this.close);
         this.listenTo(this.messages, 'addFood', this.addFood);
         this.listenTo(this.messages, 'showMyList', this.showAll);
     },
@@ -278,6 +278,7 @@ var foodListView = new FoodListView({foodList: foodList, messages: messages});
 var ApiResultsView = Backbone.View.extend({
             
     initialize: function(params) {
+        apiViewOpen = true;
         title.html('Add any of these to Today\'s Foods');
         this.results = params.results;
         this.messages = params.messages;
@@ -313,8 +314,8 @@ var ApiResultsView = Backbone.View.extend({
     
     switchView: function() {
         console.log('switchView called');
-        this.remove();
-        foodListView = new FoodListView;
+        this.messages.trigger('switchView');
+        
         return false;
     },
     
@@ -330,4 +331,20 @@ var ApiResultsView = Backbone.View.extend({
 
 var apiResultsView; // only initialized on search
         
+var AppView = Backbone.View.extend({
+    
+    initialize: function(params) {
+        this.messages = params.messages;
+        this.listenTo(this.messages, 'switchView', this.newListView);
+    },
+    
+    newListView: function() {
+        apiResultsView.close();
+        foodListView = new FoodListView;
+    }
 });
+
+var appView = new AppView({messages: messages});
+    
+});
+
