@@ -8,7 +8,8 @@ if (!id) {
 }
 
 // cache jQuery objects, create messages object, declare app-wide variables
-var searching = $('#searching'),
+var totalsDiv = $('#totals-div'),
+    searching = $('#searching'),
     title = $('#table-title'),
     done = $('#done'),
     optionHead = $('#option-head'),
@@ -39,9 +40,7 @@ var Totals = Backbone.Model.extend({
 
 // the view for displaying the totals
 var TotalsView = Backbone.View.extend({
-    
-    el: '#totals-div',
-    
+        
     template: _.template($('#totals-template').html()),
     
     // the model and messages object will be passed in on instantiation
@@ -63,6 +62,7 @@ var TotalsView = Backbone.View.extend({
     
     render: function() {
         this.$el.append(this.template(this.model.toJSON()));
+        this.$el.appendTo(totalsDiv);
         return this;
     },
     
@@ -70,24 +70,8 @@ var TotalsView = Backbone.View.extend({
     store it in the days collection. Reset daily totals. */
     // TODO: change to create model first so daily totals will persist across sessions
     newDay: function() {
-        days.create({
-            calories: this.model.calories,
-            totFat: this.model.totFat,
-            satFat: this.model.satFat,
-            sodium: this.model.sodium,
-            date: Date.now()
-        })
-        this.model.save( {
-            calories: 0,
-            totFat: 0,
-            satFat: 0,
-            sodium: 0
-            
-        });
-        // message so average for past days can be recalculated
-        // TODO implement previous days functionality
+        this.model.save({date: Date.now()});
         messages.trigger('changeDay', this.model);
-        return false;
     },
     
     // rout search to stored My Food List or AJAX call to Nugrionix API
@@ -409,6 +393,7 @@ var AppView = Backbone.View.extend({
             totalsView = new TotalsView({model: days.findWhere({date: 0}) || totals});
         });
         foodList.on('sync', function() {
+            console.log(foodList);
             foodListView = new FoodListView({foodList: foodList});
         });    
     }
