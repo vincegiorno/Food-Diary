@@ -106,9 +106,10 @@ var TotalsView = Backbone.View.extend({
     },
     
     // show My Foods List
-    showListMessage: function() {
+    showListMessage: function(e) {
+        e.stopImmediatePropagation;
         messages.trigger('showMyList');
-        return false;
+        //return false;
     },
     
     // update daily total
@@ -153,14 +154,13 @@ var FoodView = Backbone.View.extend({
     template: _.template($('#food-template').html()),
     
     initialize: function(params) {
-        // the model and messages object will be passed in on instantiation
         this.model = params.model;
         this.render();
     },
     
     events: {
         /* Clicking on the last display field will either add a food to Today's Food, 
-        if My Food List or list search results are displayed (field will display 'Add', or
+        if My Food List or list search results are displayed (field will display 'Add'), or
         increase servings by 1 if Today's Food is displayed (field will display # of servings).
         A double-click won't work on the former because the first click will trigger an add. */
         'click .option': 'addIfLink',
@@ -168,7 +168,7 @@ var FoodView = Backbone.View.extend({
     },
     
     render: function() {
-        this.$el.html(this.template(this.model));
+        this.$el.html(this.template(this.model.toJSON()));
         return this;
     },
     
@@ -226,9 +226,10 @@ var FoodListView = Backbone.View.extend({
         var view;
         // use the full My Food List
         foodList.each(function(food) {
-            view = new FoodView({model: food, messages: messages});
+            console.log(food);
+            view = new FoodView({model: food});
             // don't display if not on Today's Food or if not in search results
-            if (!food.model.get('show')) {
+            if (!food.get('show')) {
                 view.$el.addClass('hidden');
             } else {
                 // change # of servings to 'Add' if My Food List or search results
@@ -248,8 +249,8 @@ var FoodListView = Backbone.View.extend({
         optionHead.html('Servings');
         done.addClass('hidden');
         foodList.each(function(food) {
-            if (food.model.get('today')) {
-                food.model.set({show: true});
+            if (food.get('today')) {
+                food.set({show: true});
             }
         });
         this.render();
@@ -267,7 +268,7 @@ var FoodListView = Backbone.View.extend({
         foodlist.each(function(food) {
             // set display flag to true
             showThis = true;
-            item = food.model.get('item');
+            item = food.get('item');
             for (var i = words.length; i; i--) {
                 // set display flag to false and break loop if any term is not found
                 if (item.indexOf(words[i]) < 0) {
@@ -386,14 +387,13 @@ var AppView = Backbone.View.extend({
    
     initialize: function() {
         // instantiate the totals model, days collection of daily totals and first totals view
-        totals = new Totals,
-        days = new Days,
+        totals = new Totals;
+        days = new Days;
         foodList = new FoodList;
         days.on('sync', function() {
             totalsView = new TotalsView({model: days.findWhere({date: 0}) || totals});
         });
         foodList.on('sync', function() {
-            console.log(foodList);
             foodListView = new FoodListView({foodList: foodList});
         });    
     }
