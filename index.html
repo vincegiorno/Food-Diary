@@ -25,6 +25,20 @@
             <h3 class="pull-left" >Current day totals</h3>
             <button id="new-day" type="button" class="btn btn-primary pull-right">New day</button>
             <div id="totals-div"></div>
+            <form>
+                <div class="form-group">
+                    <label id="search-label" for="search">Search for nutrition information</label>
+                    <input type="text" class="form-control" id="searchbox" placeholder="Ex: broccoli with cheese sauce">
+                    <input id="search-btn" class="btn btn-default" type="submit" value="Submit">
+                    <div id="searching" class="pull-left"></div>
+                    <input id="show-list" class="btn btn-default pull-right" type="submit" value="Show My Food List">
+                    <div class="checkbox">
+                        <label>
+                            <input id="list-search" type="checkbox">Check to search My Food List instead
+                        </label>
+                    </div>
+                </div>
+            </form>
             <div id="previous-days"></div>
         </div>
 
@@ -71,22 +85,6 @@
         <td colspan="2"><b>Sodium (mg)</b>:  <%= sodium %></%></td>
     </tr>
     </table>
-    <form>
-        <div class="form-group">
-            <label id="search-label" for="search">Search for nutrition information</label>
-            <input type="text" class="form-control" id="searchbox" placeholder="Ex: frozen broccoli with cheese sauce">
-            <input id="search-btn" class="btn btn-default" type="submit" value="Submit">
-            <input id="show-list" class="btn btn-default pull-right" type="submit" value="Show My Food List">
-            <div class="checkbox">
-                <label>
-                    <input id="list-search" type="checkbox">Check to search My Food List instead
-                </label>
-            </div>
-        </div>
-    </form>
-    <div id="searching" class="pull-left">searching</div>
-    
-    
     </script>
     
     <script type="text/template" id="food-template">

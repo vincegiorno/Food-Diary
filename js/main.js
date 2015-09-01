@@ -44,21 +44,16 @@ var TotalsView = Backbone.View.extend({
     template: _.template($('#totals-template').html()),
     
     // the model and messages object will be passed in on instantiation
-    initialize: function(params) {
-        this.model = params.model;
+    initialize: function() {
         this.render();   
-        this.listenTo(this.model, 'change', this.render);
+        //this.listenTo(this.model, 'change', this.render);
         // addFood and addServing will be sent from clicks on a FoodView
   		messages.on("addFood", this.updateTotals, this);
   		messages.on("addServing", this.updateTotals, this);
+        messages.on('changeDay', this.newDay, this);
     },
     
     // handlers for the New Day, Search (Submit) and Show My Food List buttons
-    events: {
-        'click #new-day': 'newDay',
-        'click #search-btn': 'search',
-        'click #show-list': 'showListMessage'
-    },
     
     render: function() {
         this.$el.append(this.template(this.model.toJSON()));
@@ -107,9 +102,8 @@ var TotalsView = Backbone.View.extend({
     
     // show My Foods List
     showListMessage: function(e) {
-        e.stopImmediatePropagation;
         messages.trigger('showMyList');
-        //return false;
+        return false;
     },
     
     // update daily total
@@ -121,11 +115,13 @@ var TotalsView = Backbone.View.extend({
             sodium: this.model.get('sodium') + data.get('sodium')
 
         })
+    },
+    
+    renderTotals: function() {
+        
     }
 });
     
-// instantiate the totals view (left-hand div)
-
 // set up collection defaults, Firebase connection
 var Days = Backbone.Firebase.Collection.extend({
     
@@ -153,8 +149,7 @@ var FoodView = Backbone.View.extend({
     
     template: _.template($('#food-template').html()),
     
-    initialize: function(params) {
-        this.model = params.model;
+    initialize: function() {
         this.render();
     },
     
@@ -226,7 +221,6 @@ var FoodListView = Backbone.View.extend({
         var view;
         // use the full My Food List
         foodList.each(function(food) {
-            console.log(food);
             view = new FoodView({model: food});
             // don't display if not on Today's Food or if not in search results
             if (!food.get('show')) {
@@ -277,7 +271,7 @@ var FoodListView = Backbone.View.extend({
                 }
             }
             // if all terms were found, flag is still set to true
-            food.model.set({show: showThis});
+            food.set({show: showThis});
             if (showThis) {
                 found = true;
             }
@@ -303,7 +297,7 @@ var FoodListView = Backbone.View.extend({
         title.html('My Food List');
         optionHead.html('Add today');
         foodList.each(function(food) {
-            food.model.set({show: true});
+            food.set({show: true});
         });
         this.render(true);
     },
@@ -387,15 +381,26 @@ var AppView = Backbone.View.extend({
    
     initialize: function() {
         // instantiate the totals model, days collection of daily totals and first totals view
-        totals = new Totals;
         days = new Days;
         foodList = new FoodList;
         days.on('sync', function() {
-            totalsView = new TotalsView({model: days.findWhere({date: 0}) || totals});
+            totalsView = new TotalsView({model: days.findWhere({date: 0}) || days.create(new Totals)});
         });
         foodList.on('sync', function() {
-            foodListView = new FoodListView({foodList: foodList});
-        });    
+            foodListView = new FoodListView({foodList: foodList || {}});
+        });
+        this.listenTo(messages, 'changeDay', this.changeDay);
+    },
+    
+    events: {
+        'click #new-day': 'changeDay',
+        'click #search-btn': 'search', //TODO: move to AppView
+        'click #show-list': 'showListMessage'
+    },
+    
+    changeDay: function() {
+        totalsView.close();
+        totalsView = new TotalsView({model: days.create(new Totals)});
     }
 });
 
