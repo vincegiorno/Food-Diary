@@ -17,7 +17,8 @@ var totalsDiv = $('#totals-div'),
     messages = _.extend({}, Backbone.Events),
     totals, days, totalsView,
     foodList, foodListView,
-    apiListView;
+    apiListView,
+    whichList; // whichList keeps track of which list is being displayed
 
 // grabbed from online as a way to remove views and associated handlers
 Backbone.View.prototype.close = function() {
@@ -68,44 +69,7 @@ var TotalsView = Backbone.View.extend({
         this.model.save({date: Date.now()});
         messages.trigger('changeDay', this.model);
     },
-    
-    // rout search to stored My Food List or AJAX call to Nugrionix API
-    search: function() {
-        searchPhrase = $('#searchbox').val();
-        if ($('#list-search').prop('checked')) {
-            // searching My Food List will show or hide cached items
-            messages.trigger('searchList', searchPhrase);
-        } else {
-            this.searchAPI(searchPhrase);
-        }
-        return false; // stop page from refreshing, which will reset right-hand div
-    },
-    
-    // API call
-    searchAPI: function(phrase) {
-        var self = this,
-            searchWords = escape(phrase); // format for URL query string
-        var queryUrl = ntrxUrl + searchWords; // URL base stored in config.js
-        searching.html('Searching...'); // TODO: doesn't work
-        $.getJSON(queryUrl,ntrxParams) // search params stored in config.js
-            .done(function(result) {
-                var results = result.hits;
-                messages.trigger('successAPI'); // signal to remove other list view
-                // view initialization will handle display
-                // TODO: fix problem that new results can't be displayed on top of old ones
-                apiResultsView = new ApiResultsView({results: results});
-        })
-            .fail(function() {
-            searching.html('Search request failed. Please check your Internet connection and try again');
-        });
-    },
-    
-    // show My Foods List
-    showListMessage: function(e) {
-        messages.trigger('showMyList');
-        return false;
-    },
-    
+       
     // update daily total
     updateTotals: function(data) {
         this.model.save({
@@ -169,7 +133,7 @@ var FoodView = Backbone.View.extend({
     
     // check for 'Add' in field so single click on servings won't trigger
     addIfLink: function() {
-       if (this.$('.option').html() === 'Add') {
+       if (whichView !== 'today') {
            messages.trigger('addFood', this.model);
        }
         return false;
@@ -204,12 +168,12 @@ var FoodListView = Backbone.View.extend({
         this.showToday();
         // searchList signals to display search results from My Food List
         this.listenTo(messages, 'searchList', this.showResults);
-        // successAPI signals to remove the Foodlist view
-        this.listenTo(messages, 'successAPI', this.close);
         // addFood signals to add a food already on My food List to Today's Food
         this.listenTo(messages, 'addFood', this.addFood);
         // showMyList signals to show My Food List
         this.listenTo(messages, 'showMyList', this.showAll);
+        // remove view if API search returns success
+        this.listenTo(messages, 'successAPI'. this.close);
     },
     
     events: {
@@ -242,6 +206,7 @@ var FoodListView = Backbone.View.extend({
         title.html('Today\'s Food');
         optionHead.html('Servings');
         done.addClass('hidden');
+        whichList = 'today'
         foodList.each(function(food) {
             if (food.get('today')) {
                 food.set({show: true});
@@ -281,6 +246,7 @@ var FoodListView = Backbone.View.extend({
             title.html('Foods found on my list');
             optionHead.html('Add today');
             done.removeClass('hidden');
+            whichList = 'listResults';
         } else {
             // use title field to display failure message
             title.html('try again or search the database');
@@ -296,6 +262,7 @@ var FoodListView = Backbone.View.extend({
         }
         title.html('My Food List');
         optionHead.html('Add today');
+        whichList = 'all';
         foodList.each(function(food) {
             food.set({show: true});
         });
@@ -318,9 +285,12 @@ var ApiResultsView = Backbone.View.extend({
         apiViewOpen = true;
         title.html('Add any of these to Today\'s Food');
         // results from call and messages object passed in on instantiation
+        whichList = 'apiResults';
         this.results = params.results;
         // addFood will be triggered by click event set on each FoodView
         this.listenTo(messages, 'addFood', this.addFood);
+        // remove view if new API search returns success
+        this.listenTo(messages, 'successAPI'. this.close);
         this.render();
         // set last field header
         optionHead.html('Add today');
@@ -356,11 +326,6 @@ var ApiResultsView = Backbone.View.extend({
         done.removeClass('hidden');
     },
     
-    // return to Today's Food if done adding food(s)
-    /* switchView: function() {
-        foodListView = new FoodListView;
-    }, */
-    
     // add food to Today's Food (and My Food List)
     addFood: function(food) {
         // don't add if already on list
@@ -394,13 +359,59 @@ var AppView = Backbone.View.extend({
     
     events: {
         'click #new-day': 'changeDay',
-        'click #search-btn': 'search', //TODO: move to AppView
-        'click #show-list': 'showListMessage'
+        'click #search-btn': 'search',
+        'click #show-list': 'showMyList',
+        'click #done': 'goToday'
     },
     
     changeDay: function() {
         totalsView.close();
         totalsView = new TotalsView({model: days.create(new Totals)});
+    },
+    
+    // rout search to stored My Food List or AJAX call to Nutrionix API
+    search: function() {
+        searchPhrase = $('#searchbox').val();
+        if ($('#list-search').prop('checked')) {
+            // searching My Food List will show or hide cached items
+            messages.trigger('searchList', searchPhrase);
+        } else {
+            this.searchAPI(searchPhrase);
+        }
+        return false; // stop page from refreshing, which will reset right-hand div
+    },
+    
+    // API call
+    searchAPI: function(phrase) {
+        var self = this,
+            searchWords = escape(phrase); // format for URL query string
+        var queryUrl = ntrxUrl + searchWords; // URL base stored in config.js
+        searching.html('Searching...'); // TODO: doesn't work
+        $.getJSON(queryUrl,ntrxParams) // search params stored in config.js
+            .done(function(result) {
+                var results = result.hits;
+                messages.trigger('successAPI'); // signal to remove other list view
+                // pass results to initialize new results list display
+                apiResultsView = new ApiResultsView({results: results});
+        })
+            .fail(function() {
+            searching.html('Search request failed. Please check your Internet connection and try again');
+        });
+    },
+     
+    // show My Foods List
+    showMyList: function() {
+        messages.trigger('showMyList');
+    },
+    
+    goToday: function() {
+        if (whichList = 'apiResults') {
+            apiResultsView.close();
+            foodListView = new FoodListView;
+        }
+        else {
+            messages.trigger('goToday');
+        }
     }
 });
 
