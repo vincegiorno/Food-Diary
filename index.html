@@ -43,19 +43,20 @@
         </div>
 
         <div class= "col-xs-12 col-sm-8">
-            <h3 id="table-title">Today's Food</h3>
+            <h3 id="table-title" class="pull-left">Today's Food</h3>
             <button id="done" type="button" class="btn btn-primary pull-right">Done</button>
             <table id="food-table">
-                <tr>
-                    <th colspan="5">Item</th>
-                    <th>Brand</th>
-                    <th>Cal</th>
-                    <th>Tot fat</th>
-                    <th>Sat fat</th>
-                    <th>Sod</th>
-                    <th id="option-head">Servings</th>
-                </tr>
-                <tr id="placeholder"></tr>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Brand</th>
+                        <th>Cal</th>
+                        <th>Tot fat</th>
+                        <th>Sat fat</th>
+                        <th>Sod</th>
+                        <th id="option-head">Servings</th>
+                    </tr>
+                </thead>
             </table>
         </div>
     </div>
@@ -75,20 +76,20 @@
     <script type="text/template" id="totals-template">
     <table class="table">
     <tr>
-        <td colspan="2"><b>Calories</b>:  <%= calories %></%></td>
+        <td><b>Calories</b>:  <%= calories %></%></td>
     </tr>
     <tr>
         <td><b>Total fat (g)</b>:  <%= totFat %></%></td>
         <td><b>(saturated, g)</b>:  <%= satFat %></%></td>
     </tr>
     <tr>
-        <td colspan="2"><b>Sodium (mg)</b>:  <%= sodium %></%></td>
+        <td><b>Sodium (mg)</b>:  <%= sodium %></%></td>
     </tr>
     </table>
     </script>
     
     <script type="text/template" id="food-template">
-        <td colspan="5"><%= item %></td>
+        <td><%= item %></td>
         <td><%= brand %></td>
         <td><%= calories %></td>
         <td><%= totFat %></td>

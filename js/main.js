@@ -9,11 +9,11 @@ if (!id) {
 
 // cache jQuery objects, create messages object, declare app-wide variables
 var totalsDiv = $('#totals-div'),
-    searching = $('#searching'),
+    searchBtn = $('#search-btn'),
     title = $('#table-title'),
     done = $('#done'),
     optionHead = $('#option-head'),
-    placeholder = $('#placeholder'),
+    foodTable = $('#food-table'),
     messages = _.extend({}, Backbone.Events),
     totals, days, totalsView,
     foodList, foodListView,
@@ -22,6 +22,7 @@ var totalsDiv = $('#totals-div'),
 
 // grabbed from online as a way to remove views and associated handlers
 Backbone.View.prototype.close = function() {
+    console.log(this);
     this.undelegateEvents();
     this.remove();
 }
@@ -49,9 +50,9 @@ var TotalsView = Backbone.View.extend({
         this.render();   
         //this.listenTo(this.model, 'change', this.render);
         // addFood and addServing will be sent from clicks on a FoodView
-  		messages.on("addFood", this.updateTotals, this);
-  		messages.on("addServing", this.updateTotals, this);
-        messages.on('changeDay', this.newDay, this);
+  		this.listenTo(messages, 'addFood', this.updateTotals);
+  		this.listenTo(messages, 'addServing', this.updateTotals);
+        this.listenTo(messages, 'changeDay', this.newDay, this);
     },
     
     // handlers for the New Day, Search (Submit) and Show My Food List buttons
@@ -66,7 +67,7 @@ var TotalsView = Backbone.View.extend({
     store it in the days collection. Reset daily totals. */
     // TODO: change to create model first so daily totals will persist across sessions
     newDay: function() {
-        this.model.save({date: Date.now()});
+        this
         messages.trigger('changeDay', this.model);
     },
        
@@ -127,19 +128,21 @@ var FoodView = Backbone.View.extend({
     },
     
     render: function() {
-        this.$el.html(this.template(this.model.toJSON() || this.model));
+        this.$el.append(this.template(this.model.toJSON()));
         return this;
     },
     
     // check for 'Add' in field so single click on servings won't trigger
     addIfLink: function() {
-       if (whichList !== 'today') {
+        console.log('add link clicked');
+        if (whichList !== 'today') {
            messages.trigger('addFood', this.model);
        }
         return false;
     },
     
     incrementServings: function() {
+        console.log('servings link clicked');
         // increment & save for daily list, signal for daily total to update
         // TODO: reset servings on new day
         var newServings = parseInt(this.model.get('servings') + 1);
@@ -161,6 +164,8 @@ var FoodList = Backbone.Firebase.Collection.extend({
 all of which use the same basic list, showing or hiding items as appropriate. */
 var FoodListView = Backbone.View.extend({
     
+    tagName: 'tbody',
+    
     initialize: function(params) {
         // Today's Food is the default display when the app starts up
         this.showToday();
@@ -171,7 +176,7 @@ var FoodListView = Backbone.View.extend({
         // showMyList signals to show My Food List
         this.listenTo(messages, 'showMyList', this.showAll);
         // remove view if API search returns success
-        this.listenTo(messages, 'successAPI', this.close);
+        //this.listenTo(messages, 'successAPI', this.close);
     },
     
     events: {
@@ -180,7 +185,8 @@ var FoodListView = Backbone.View.extend({
     },
     
     render: function(optionAdd) {
-        var view;
+        var view,
+            list = this;
         // use the full My Food List
         foodList.each(function(food) {
             view = new FoodView({model: food});
@@ -195,8 +201,9 @@ var FoodListView = Backbone.View.extend({
             }
             /* TODO: rewrite to build list on this.$el and then replace placeholder <tr>,
             like in ApiResultsView. But this broke app on the first try. */
-            view.$el.appendTo($('#food-table'));
+            view.$el.appendTo(list.$el);
         });
+        foodTable.append(this.$el);
     },
     
     // set title, last field heading and 'show' property flag to display Today's Food 
@@ -260,11 +267,12 @@ var FoodListView = Backbone.View.extend({
         }
         title.html('My Food List');
         optionHead.html('Add today');
-        whichList = 'all';
         foodList.each(function(food) {
             food.set({show: true});
         });
         this.render(true);
+        done.removeClass('hidden');
+        whichList = 'all';
     },
     
     // adding a food already on My Food List sets today property flag to true
@@ -278,6 +286,8 @@ var FoodListView = Backbone.View.extend({
 
 // set up view to display API results
 var ApiResultsView = Backbone.View.extend({
+    
+    tagName: 'tbody',
             
     initialize: function(params) {
         apiViewOpen = true;
@@ -286,7 +296,7 @@ var ApiResultsView = Backbone.View.extend({
         whichList = 'apiResults';
         this.results = params.results;
         // addFood will be triggered by click event set on each FoodView
-        this.listenTo(messages, 'addFood', this.addFood);
+        //this.listenTo(messages, 'addFood', this.addFood);
         // remove view if new API search returns success
         this.listenTo(messages, 'successAPI', this.close);
         this.render();
@@ -320,12 +330,13 @@ var ApiResultsView = Backbone.View.extend({
             this.$el.append(view.$el);
         }
         // replace placeholder row with one draw
-        placeholder.replaceWith(this.$el.html());
+        foodTable.append(this.$el);
         done.removeClass('hidden');
     },
     
     // add food to Today's Food (and My Food List)
     addFood: function(food) {
+        console.log('API addFood called');
         // don't add if already on list
         // TODO: increase servings (totalsView handles totals)
         var found = foodList.findWhere({itemId: food.get('itemId')});
@@ -348,12 +359,11 @@ var AppView = Backbone.View.extend({
         foodList = new FoodList;
         days.on('sync', function() {
             totalsView = new TotalsView({model: days.findWhere({date: 0}) || new Totals});
-            days.add(totalsView.model);
+            days.add(totalsView.model.toJSON);
         });
         foodList.on('sync', function() {
             foodListView = new FoodListView({foodList: foodList || {}});
         });
-        this.listenTo(messages, 'changeDay', this.changeDay);
     },
     
     events: {
@@ -363,9 +373,10 @@ var AppView = Backbone.View.extend({
     },
     
     changeDay: function() {
+        //totalsView.model.save({date: Date.now()});
         totalsView.close();
         totalsView = new TotalsView({model: new Totals});
-        days.add(totalsView.model);
+        days.add(totalsView.model.toJSON);
     },
     
     // rout search to stored My Food List or AJAX call to Nutrionix API
@@ -386,12 +397,17 @@ var AppView = Backbone.View.extend({
         var self = this,
             searchWords = escape(phrase); // format for URL query string
         var queryUrl = ntrxUrl + searchWords; // URL base stored in config.js
-        searching.html('Searching...');
+        searchBtn.attr('value', 'Searching...');
         $.getJSON(queryUrl,ntrxParams) // search params stored in config.js
             .done(function(result) {
                 var results = result.hits;
-                messages.trigger('successAPI'); // signal to remove other list view
-                searching.html('');
+                searchBtn.attr('value', 'Submit');
+                if (whichList !== 'apiResults') {
+                    foodListView.close();
+                } else {
+                    apiResultsView.close();
+                }
+                // messages.trigger('successAPI'); // signal to remove other list view
                 // pass results to initialize new results list display
                 apiResultsView = new ApiResultsView({results: results});
         })
@@ -402,7 +418,6 @@ var AppView = Backbone.View.extend({
      
     // show My Foods List
     showMyList: function() {
-        console.log('showMyList');
         messages.trigger('showMyList');
         return false;
     },
