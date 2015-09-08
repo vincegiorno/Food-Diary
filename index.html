@@ -76,14 +76,14 @@
     <script type="text/template" id="totals-template">
     <table class="table">
     <tr>
-        <td><b>Calories</b>:  <%= calories %></%></td>
+        <td colspan="2"><b>Calories</b>:  <%= Math.round(calories) %></%></td>
     </tr>
     <tr>
-        <td><b>Total fat (g)</b>:  <%= totFat %></%></td>
-        <td><b>(saturated, g)</b>:  <%= satFat %></%></td>
+        <td><b>Total fat (g)</b>:  <%= Math.round(totFat * 10)/10 %></%></td>
+        <td><b>(saturated, g)</b>:  <%= Math.round(satFat * 10)/10 %></%></td>
     </tr>
     <tr>
-        <td><b>Sodium (mg)</b>:  <%= sodium %></%></td>
+        <td colspan="2"><b>Sodium (mg)</b>:  <%= Math.round(sodium * 10)/10 %></%></td>
     </tr>
     </table>
     </script>
