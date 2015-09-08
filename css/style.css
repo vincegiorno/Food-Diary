@@ -6,11 +6,6 @@ body {
     margin: 0 auto;
 }
 
-#totals-div {
-    background-color: aquamarine;
-    height: 170px;
-}
-
 #display-div {
     background-color: bisque;
 }

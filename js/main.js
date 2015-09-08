@@ -8,7 +8,10 @@ if (!id) {
 }
 
 // cache jQuery objects, create messages object, declare app-wide variables
-var totalsDiv = $('#totals-div'),
+var totalCalories = $('#cal'),
+    totalFat = $('#tot'),
+    totalSat = $('#sat'),
+    totalSod = $('#sod'),
     searchBtn = $('#search-btn'),
     title = $('#table-title'),
     done = $('#done'),
@@ -41,48 +44,39 @@ var Totals = Backbone.Model.extend({
 
 // the view for displaying the totals
 var TotalsView = Backbone.View.extend({
-        
-    template: _.template($('#totals-template').html()),
-    
+            
     // the model and messages object will be passed in on instantiation
     initialize: function() {
         this.render();   
-        //this.listenTo(this.model, 'change', this.render);
+        this.listenTo(this.model, 'change', this.render);
         // addFood and addServing will be sent from clicks on a FoodView
   		this.listenTo(messages, 'addFood', this.updateTotals);
   		this.listenTo(messages, 'addServing', this.updateTotals);
-        this.listenTo(messages, 'changeDay', this.newDay, this);
+        this.listenTo(messages, 'closeTotals', this.close);
     },
     
     // handlers for the New Day, Search (Submit) and Show My Food List buttons
     
     render: function() {
-        this.$el.append(this.template(this.model.toJSON()));
-        this.$el.appendTo(totalsDiv);
-        return this;
+        totalCalories.html('Calories: ' + Math.round(this.model.get('calories')));
+        totalFat.html('Total fat (g): ' + Math.round(this.model.get('totFat') * 10)/10); 
+        totalSat.html('saturated (g): ' + Math.round(this.model.get('satFat') * 10)/10);
+        totalSod.html('Sodium (mg): ' + Math.round(this.model.get('sodium') * 10)/10);
     },
     
-    /* When user starts a new day, use the accumulated totals to create a new Day object and
-    store it in the days collection. Reset daily totals. */
-    // TODO: change to create model first so daily totals will persist across sessions
-    newDay: function() {
-        this
-        messages.trigger('changeDay', this.model);
-    },
-       
     // update daily total
     updateTotals: function(data) {
+        console.log('calories: ', data.get('calories'));
+        console.log('old total ', this.model.get('calories'));
+        console.log('new total ', data.get('calories') + this.model.get('calories'));
+        console.log('calories: ' + data.get('calories'));
         this.model.save({
             calories: this.model.get('calories') + data.get('calories'),
             totFat: this.model.get('totFat') + data.get('totFat'),
             satFat: this.model.get('satFat') + data.get('satFat'),
             sodium: this.model.get('sodium') + data.get('sodium')
 
-        })
-    },
-    
-    renderTotals: function() {
-        
+        });
     }
 });
     
@@ -215,8 +209,6 @@ var FoodListView = Backbone.View.extend({
         done.addClass('hidden');
         whichList = 'today';
         foodList.each(function(food) {
-            console.log(food);
-            console.log(food.get('today'));
             if (food.get('today')) {
                 food.set({show: true});
             }
@@ -360,11 +352,11 @@ var AppView = Backbone.View.extend({
         // instantiate the totals model, days collection of daily totals and first totals view
         days = new Days;
         foodList = new FoodList;
-        days.on('sync', function() {
+        days.once('sync', function() {
             totalsView = new TotalsView({model: days.findWhere({date: 0}) || new Totals});
             days.add(totalsView.model.toJSON);
         });
-        foodList.on('sync', function() {
+        foodList.once('sync', function() {
             foodListView = new FoodListView({});
         });
     },
@@ -375,9 +367,11 @@ var AppView = Backbone.View.extend({
         'click #show-list': 'showMyList'
     },
     
+    /* When user starts a new day, use the accumulated totals to create a new Day object and
+    store it in the days collection. Reset daily totals. */
     changeDay: function() {
         //totalsView.model.save({date: Date.now()});
-        totalsView.close();
+        messages.trigger(closeTotals);
         totalsView = new TotalsView({model: new Totals});
         days.add(totalsView.model.toJSON);
     },
