@@ -92,6 +92,14 @@ var Days = Backbone.Firebase.Collection.extend({
 var Food = Backbone.Model.extend({
     defaults: function() {
       return {
+          // set default for every field in case returned data is incomplete
+          itemId: '',
+          item: '',
+          brand: '',
+          calories: 0,
+          totFat: 0,
+          satFat: 0,
+          sodium: 0,
           servings: 1,
           // today property will be used for flagging items to display in Today's Food list
           today: true,
@@ -136,7 +144,8 @@ var FoodView = Backbone.View.extend({
     
     incrementServings: function() {
         // TODO: reset servings on new day
-        var newServings = parseInt(this.model.get('servings') + 1);
+        var newServings = this.model.get('servings') + 1;
+        this.$('.option').html(newServings);
         this.model.save({servings: newServings});
         messages.trigger('addServing', this.model);
         return false;
@@ -181,12 +190,7 @@ var FoodListView = Backbone.View.extend({
         }
     },
         
-    events: {
-        // return to Today's Food list when finished adding new items
-        'click #done': 'showToday'
-    },
-    
-    render: function(optionAdd) {
+   render: function(optionAdd) {
         var view,
             list = this;
         foodList.each(function(food) {
@@ -301,11 +305,6 @@ var ApiResultsView = Backbone.View.extend({
         optionHead.html('Add today');
     },
     
-    events: {
-        // go back to Today's Food view if done adding food(s)
-        'click #done': 'switchView'
-    },
-    
     render: function() {
         var view, food, fields;
         // food items not stored in Foods collection until added, so passed as array
@@ -319,7 +318,7 @@ var ApiResultsView = Backbone.View.extend({
                 calories: fields.nf_calories,
                 totFat: fields.nf_total_fat,
                 satFat: fields.nf_saturated_fat,
-                sodium: fields.nf_sodium,
+                sodium: fields.nf_sodium
             });
             view = new FoodView({model: food});
             view.$('.option').html('Add');
@@ -364,7 +363,8 @@ var AppView = Backbone.View.extend({
     events: {
         'click #new-day': 'changeDay',
         'click #search-btn': 'search',
-        'click #show-list': 'showMyList'
+        'click #show-list': 'showMyList',
+        'click #done': 'switchView'
     },
     
     /* When user starts a new day, use the accumulated totals to create a new Day object and
@@ -417,14 +417,11 @@ var AppView = Backbone.View.extend({
         return false;
     },
     
-    goToday: function() {
+    switchView: function() {
         if (whichList = 'apiResults') {
             apiResultsView.close();
-            foodListView = new FoodListView;
         }
-        else {
-            messages.trigger('goToday');
-        }
+        foodListView = new FoodListView({});
     }
 });
 
