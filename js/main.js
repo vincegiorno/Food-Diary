@@ -80,7 +80,6 @@ var TotalsView = Backbone.View.extend({
     saveDay: function() {
         var today = Date.now();
         this.model.set({date: today});
-        this.close();
     }
 });
 
@@ -95,8 +94,8 @@ var Days = Backbone.Firebase.Collection.extend({
         this.listenTo(messages, 'newTotals', this.addNewTotals);
     },
     
-    addNewTotals: function(totals) {
-        this.add(totals);
+    addNewTotals: function(totalsModel) {
+        this.add(totalsModel);
     }
 });
 
@@ -153,12 +152,14 @@ var FoodView = Backbone.View.extend({
         return false;
     },
 
-    // only increment servings if Today's Food is the open list
     incrementServings: function() {
-        var newServings = this.model.get('servings') + 1;
-        this.$('.option').html(newServings);
-        this.model.set({servings: newServings});
-        messages.trigger('addServing', this.model);
+        self = this;
+        var newServings = self.model.get('servings') + 1;
+        self.model.set({servings: newServings});
+        messages.trigger('addServing', self.model);
+        if (whichList === 'today') {
+            self.$('.option').html(newServings);
+        }
         return false;
     }
 });
@@ -172,10 +173,20 @@ var FoodList = Backbone.Firebase.Collection.extend({
     
     initialize: function() {
         this.listenTo(messages, 'newFood', this.addNewFood);
+        this.listenTo(messages, 'newDay', this.clearToday);
     },
     
     addNewFood: function(food) {
         this.add(food);
+    },
+    
+    clearToday: function() {
+        var foodArray = [];
+        this.forEach(function(food) {
+            food.set({today: false, show: false});
+            foodArray.push(food);
+        });
+        this.set(foodArray);
     }
 });
     
@@ -196,7 +207,7 @@ var FoodListView = Backbone.View.extend({
         // showMyList signals to show My Food List
         this.listenTo(messages, 'showMyList', this.showAll);
         // remove view if API search returns success
-        this.listenTo(messages, 'closeLists', this.close);
+        this.listenTo(messages, 'closeList', this.close);
         switch (this.option) {
             case 'all':
                 this.showAll();
@@ -219,8 +230,8 @@ var FoodListView = Backbone.View.extend({
                     this.$('.option').html('Add');
                     console.log(this.$('.option').html());
                 }
+                view.$el.appendTo(list.$el);
             }
-            view.$el.appendTo(list.$el);
         });
         foodTable.append(list.$el);
     },
@@ -318,7 +329,7 @@ var ApiResultsView = Backbone.View.extend({
         // remove view if new API search returns success
         this.listenTo(messages, 'successAPI', this.close);
         // remove view if Show My List button clicked
-        this.listenTo(messages, 'closeLists', this.close);
+        this.listenTo(messages, 'closeList', this.close);
         this.render();
         // set last field header
         optionHead.html('Add today');
@@ -372,7 +383,9 @@ var AppView = Backbone.View.extend({
         foodList = new FoodList;
         days.once('sync', function() {
             totalsView = new TotalsView({model: days.findWhere({date: 0}) || new Totals});
-            messages.trigger('newTotals', totalsView.model.attributes);
+            days.add(totalsView.model.attributes);
+            totalsView.close();
+            totalsView = new TotalsView({model: days.findWhere({date: 0})});
         });
         foodList.once('sync', function() {
             foodListView = new FoodListView({});
@@ -390,8 +403,12 @@ var AppView = Backbone.View.extend({
     store it in the days collection. Reset daily totals. */
     changeDay: function() {
         messages.trigger('newDay');
+        messages.trigger('closeList');
         totalsView = new TotalsView({model: new Totals});
-        messages.trigger('newTotals', totalsView.model.attributes);
+        days.add(totalsView.model.attributes);
+        totalsView.close();
+        totalsView = new TotalsView({model: days.findWhere({date: 0})});
+        foodListView = new FoodListView({});
     },
 
     // route search to stored My Food List or make AJAX call to Nutrionix API
@@ -416,7 +433,7 @@ var AppView = Backbone.View.extend({
             .done(function(result) {
                 var results = result.hits;
                 searchBtn.attr('value', 'Submit');
-                messages.trigger('closeLists'); // signal to close any open list view
+                messages.trigger('closeList'); // signal to close any open list view
                 // pass results to initialize new results list display
                 apiResultsView = new ApiResultsView({results: results});
         })
@@ -428,13 +445,13 @@ var AppView = Backbone.View.extend({
     // show My Foods List
     showMyList: function() {
         // if apiResultsView is open, close it and initialize foodListView to show the whole list
-        messages.trigger('closeLists'); // signal any open list view to close
+        messages.trigger('closeList'); // signal any open list view to close
         foodListView = new FoodListView({option: 'all'});
         return false;
     },
 
     goToday: function() {
-        messages.trigger('closeLists');
+        messages.trigger('closeList');
         foodListView = new FoodListView({});
     }
 });
