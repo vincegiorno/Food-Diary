@@ -6,8 +6,8 @@ body {
     margin: 0 auto;
 }
 
-#display-div {
-    background-color: bisque;
+#totals-div {
+    height: 100px;
 }
 
 h1 {

@@ -1,6 +1,6 @@
 var appId = '7fe99a0e';
 var appKey = '2e8422defebd45960525ef1136a3fd46';
-var fbUrl = 'https://blinding-torch-4046.firebaseIO.com/diary/'
+var fbUrl = 'https://blinding-torch-4046.firebaseIO.com/food-diary/'
 var ntrxUrl = 'https://api.nutritionix.com/v1_1/search/'
 var ntrxParams = {
     results: '0:30',
