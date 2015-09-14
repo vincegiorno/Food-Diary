@@ -27,8 +27,8 @@
             <button id="new-day" type="button" class="btn btn-primary pull-right">New day</button>
             </div>
             <div class="row">
-            <div id="totals-div">
-            </div>
+            <table id="totals-table" class="table">
+            </table>
             </div>
             <form>
                 <div class="form-group">
@@ -48,8 +48,11 @@
         </div>
 
         <div class= "col-xs-12 col-sm-8">
-            <h3 id="table-title" class="pull-left">Today's Food</h3>
+            <div class="row">
+            <h3 id="table-title" class="pull-left">Today</h3>
             <button id="done" type="button" class="btn btn-primary pull-right">Done</button>
+            </div>
+            <div id="food-table-div" class="row">
             <table id="food-table" class="table">
                 <thead>
                     <tr>
@@ -63,6 +66,7 @@
                     </tr>
                 </thead>
             </table>
+            </div>
         </div>
     </div>
     

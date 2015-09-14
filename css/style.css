@@ -1,13 +1,13 @@
 body {
-    height: 900px;
+    height: 700px;
 }
 
 .container {
     margin: 0 auto;
 }
 
-#totals-div {
-    height: 100px;
+#totals-table {
+    height: 110px;
 }
 
 h1 {
@@ -25,12 +25,22 @@ h3 {
 }
 
 .table {
+    width: 100%;
     margin-bottom: 5px;
+}
+
+#food-table-div {
+    height: 400px;
+    overflow: scroll;
 }
 
 #food-table {
     width: 100%;
     margin-top: 5px;
+}
+
+td {
+    max-width: 300px;
 }
 
 .form-group {
