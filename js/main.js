@@ -25,6 +25,7 @@ var totalsTable = $('#totals-table'),
 Backbone.View.prototype.close = function() {
     this.undelegateEvents();
     this.remove();
+    whichList = '';
 };
 
 // the starting values for the running daily totals displayed in the left-hand div
@@ -148,7 +149,7 @@ var FoodView = Backbone.View.extend({
     addFood: function() {
         messages.trigger('countFood', this.model);
         this.model.set({today: true});
-        if(whichList === 'apiResults') {
+        if (whichList === 'apiResults') {
             messages.trigger('foodToAdd', this.model)
         } else {
             this.incrementServings();
@@ -177,6 +178,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
         this.listenTo(messages, 'foodToAdd', this.checkFood);
         this.listenTo(messages, 'closeList', this.clearShow);
         this.listenTo(messages, 'newDay', this.clearToday);
+        this.listenTo(messages, 'searchList', this.searchList);
     },
     
     checkFood: function(food) {
@@ -191,7 +193,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
     
     clearShow: function() {
       var foodArray = [];
-        this.forEach(function(food) {
+        this.each(function(food) {
             food.set({show: false});
             foodArray.push(food);
         });
@@ -200,11 +202,43 @@ var FoodList = Backbone.Firebase.Collection.extend({
     
     clearToday: function() {
         var foodArray = [];
-        this.forEach(function(food) {
+        this.each(function(food) {
             food.set({today: false, servings: 0});
             foodArray.push(food);
         });
         this.set(foodArray);
+    },
+    
+    searchList: function(phrase) {
+        // turn search phrase into array of terms
+        var words = phrase.split(' '),
+            showThis,
+            item,
+            found,
+            foodArray = [];
+        // search each item name field for each search term
+        this.each(function(food) {
+            // set display flag to true
+            showThis = true;
+            item = food.get('item');
+            item = item.toLowerCase();
+            for (var i = words.length - 1; i >= 0; i--) {
+                // break loop and set display flag to false if any term is not found
+                if (item.indexOf(words[i].toLowerCase()) < 0) {
+                    showThis = false;
+                    break;
+                }
+            }
+            // if all terms were found, display flag is still set to true
+            food.set({show: showThis});
+            if (showThis) {
+                // at least one food item matched 
+                found = true;
+            }
+            foodArray.push(food);
+        });
+        this.set(foodArray);
+        messages.trigger('listSearchComplete', found);
     }
 });
     
@@ -219,7 +253,8 @@ var FoodListView = Backbone.View.extend({
     initialize: function (params){
         this.option = params.option;
         // searchList signals to display search results from My Food List
-        this.listenTo(messages, 'searchList', this.showResults);
+        this.isFound = params.isFound;
+        this.listenTo(messages, 'resultsReady', this.showResults);
         // showMyList signals to show My Food List
         this.listenTo(messages, 'showMyList', this.showAll);
         // remove view if API search returns success
@@ -228,8 +263,8 @@ var FoodListView = Backbone.View.extend({
             case 'all':
                 this.showAll();
                 break;
-            case 'listResults':
-                this.showResults();
+            case 'results':
+                this.showResults(this.isFound);
                 break;
             default:
                 this.showToday();
@@ -245,16 +280,24 @@ var FoodListView = Backbone.View.extend({
                 if (optionAdd) {
                     view.$('.option').html('Add');
                 }
+                if (whichList !== 'results') {
+                    view.$('.item').hover( function() {
+                        $(this).find('.delete').show();
+                    }, function() {
+                        $(this).find('.delete').hide();
+                    });
+                }
                 view.$el.appendTo(list.$el);
             }
         });
-        foodTable.append(list.$el);
+       list.$(".delete").hide();
+       foodTable.append(list.$el);
     },
 
     // set title, last field heading and 'show' property flag to display Today's Food
     showToday: function() {
         title.html('Today');
-        optionHead.html('Servings');
+        optionHead.html('###');
         done.addClass('hidden');
         whichList = 'today';
         foodList.each(function(food) {
@@ -267,50 +310,27 @@ var FoodListView = Backbone.View.extend({
     },
 
     // filter list for search results
-    showResults: function(phrase) {
-        // turn search phrase into array of terms
-        var words = phrase.split(' '),
-            showThis,
-            item,
-            found;
-        // search each item name field for each search term
-        foodlist.each(function(food) {
-            // set display flag to true
-            showThis = true;
-            item = food.get('item');
-            for (var i = words.length; i; i--) {
-                // set display flag to false and break loop if any term is not found
-                if (item.indexOf(words[i]) < 0) {
-                    showThis = false;
-                    break;
-                }
-            }
-            // if all terms were found, flag is still set to true
-            food.set({show: showThis});
-            if (showThis) {
-                found = true;
-            }
-        });
+    showResults: function(isFound) {
         // display results if at least one match found
-        if (found) {
-            title.html('Foods found on my list');
+        if (isFound) {
+            title.html('Matches found on my list');
             optionHead.html('Add today');
+            this.render(true);
             done.removeClass('hidden');
-            whichList = 'listResults';
+            whichList = 'results';
         } else {
             // use title field to display failure message
-            title.html('try again or search the database');
+            title.html('No matches. Try again or search the database');
         }
-        this.render(true);
     },
 
     // set title, last field heading and 'show' property flag to display My Food List
     showAll: function() {
-        // if My Food List is already displayed, do nothing
+        // if My List is already displayed, do nothing
         if (whichList === 'all') {
             return;
         }
-        title.html('My Food List');
+        title.html('My List');
         optionHead.html('Add today');
         foodList.each(function(food) {
             food.set({show: true});
@@ -385,6 +405,7 @@ var AppView = Backbone.View.extend({
         foodList.once('sync', function() {
             foodListView = new FoodListView({});
         });
+        this.listenTo(messages, 'listSearchComplete', this.openListResults);
     },
 
     events: {
@@ -409,8 +430,13 @@ var AppView = Backbone.View.extend({
     // route search to stored My Food List or make AJAX call to Nutrionix API
     search: function() {
         searchPhrase = $('#searchbox').val();
+        if (searchPhrase === '') {
+            return;
+        }
+        // signal to close any open list view
+        messages.trigger('closeList');
         if ($('#list-search').prop('checked')) {
-            // searching My Food List will show or hide cached items
+            // search My Food list
             messages.trigger('searchList', searchPhrase);
         } else {
             this.searchAPI(searchPhrase);
@@ -428,7 +454,6 @@ var AppView = Backbone.View.extend({
             .done(function(result) {
                 var results = result.hits;
                 searchBtn.attr('value', 'Submit');
-                messages.trigger('closeList'); // signal to close any open list view
                 // pass results to initialize new results list display
                 apiResultsView = new ApiResultsView({results: results});
         })
@@ -448,6 +473,10 @@ var AppView = Backbone.View.extend({
     goToday: function() {
         messages.trigger('closeList');
         foodListView = new FoodListView({});
+    },
+    
+    openListResults: function(isFound) {
+        foodListView = new FoodListView({option: 'results', isFound: isFound});
     }
 });
 

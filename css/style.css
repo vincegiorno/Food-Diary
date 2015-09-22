@@ -39,8 +39,12 @@ h3 {
     margin-top: 5px;
 }
 
-td {
+#food-table td {
     max-width: 300px;
+}
+
+#food-table img {
+    margin-left: 3px;
 }
 
 .form-group {

@@ -62,7 +62,7 @@
                         <th>Tot fat</th>
                         <th>Sat fat</th>
                         <th>Sod</th>
-                        <th id="option-head">Servings</th>
+                        <th id="option-head"></th>
                     </tr>
                 </thead>
             </table>
@@ -97,7 +97,7 @@
     </script>
     
     <script type="text/template" id="food-template">
-        <td><%= item %></td>
+        <td class="item"><%= item %><img class="delete" src="images/delete.png" alt="delete button" /></td>
         <td><%= brand %></td>
         <td><%= calories %></td>
         <td><%= totFat %></td>
