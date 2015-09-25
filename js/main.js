@@ -93,6 +93,7 @@ var Days = Backbone.Firebase.Collection.extend({
     
     initialize: function() {
         this.listenTo(messages, 'newTotals', this.addNewTotals);
+        this.on
     },
     
     addNewTotals: function(totalsModel) {
@@ -274,7 +275,7 @@ var FoodListView = Backbone.View.extend({
    render: function(optionAdd) {
         var view,
             list = this;
-        foodList.each(function(food) {
+        this.collection.each(function(food) {
             if (food.get('show')) {
                 view = new FoodView({model: food});
                 if (optionAdd) {
@@ -300,7 +301,7 @@ var FoodListView = Backbone.View.extend({
         optionHead.html('###');
         done.addClass('hidden');
         whichList = 'today';
-        foodList.each(function(food) {
+        this.collection.each(function(food) {
             if (food.get('today')) {
                 food.set({show: true});
             }
@@ -332,7 +333,7 @@ var FoodListView = Backbone.View.extend({
         }
         title.html('My List');
         optionHead.html('Add today');
-        foodList.each(function(food) {
+        this.collection.each(function(food) {
             food.set({show: true});
         });
         this.render(true);
@@ -347,7 +348,6 @@ var ApiResultsView = Backbone.View.extend({
     tagName: 'tbody',
 
     initialize: function(params) {
-        apiViewOpen = true;
         title.html('Add any of these to Today\'s Food');
         // results from call and messages object passed in on instantiation
         whichList = 'apiResults';
@@ -387,7 +387,7 @@ var ApiResultsView = Backbone.View.extend({
         done.removeClass('hidden');
     }
 });
-
+    
 var AppView = Backbone.View.extend({
 
     el: 'body',
@@ -403,7 +403,7 @@ var AppView = Backbone.View.extend({
             totalsView = new TotalsView({model: days.findWhere({date: 0})});
         });
         foodList.once('sync', function() {
-            foodListView = new FoodListView({});
+            foodListView = new FoodListView({collection: foodList});
         });
         this.listenTo(messages, 'listSearchComplete', this.openListResults);
     },
@@ -424,7 +424,7 @@ var AppView = Backbone.View.extend({
         days.add(totalsView.model.attributes);
         totalsView.close();
         totalsView = new TotalsView({model: days.findWhere({date: 0})});
-        foodListView = new FoodListView({});
+        foodListView = new FoodListView({collection: foodList});
     },
 
     // route search to stored My Food List or make AJAX call to Nutrionix API
@@ -466,17 +466,17 @@ var AppView = Backbone.View.extend({
     showMyList: function() {
         // if apiResultsView is open, close it and initialize foodListView to show the whole list
         messages.trigger('closeList'); // signal any open list view to close
-        foodListView = new FoodListView({option: 'all'});
+        foodListView = new FoodListView({collection: foodList, option: 'all'});
         return false;
     },
 
     goToday: function() {
         messages.trigger('closeList');
-        foodListView = new FoodListView({});
+        foodListView = new FoodListView({collection: foodList});
     },
     
     openListResults: function(isFound) {
-        foodListView = new FoodListView({option: 'results', isFound: isFound});
+        foodListView = new FoodListView({collection: foodList, option: 'results', isFound: isFound});
     }
 });
 
