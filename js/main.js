@@ -10,6 +10,7 @@ if (!id) {
 // cache jQuery objects, create messages object, declare app-wide variables
 var totalsTable = $('#totals-table'),
     searchBtn = $('#search-btn'),
+    graphDiv = $('#graph-div'),
     title = $('#table-title'),
     done = $('#done'),
     optionHead = $('#option-head'),
@@ -17,6 +18,7 @@ var totalsTable = $('#totals-table'),
     messages = _.extend({}, Backbone.Events),
     totals, days, totalsView,
     foodList, foodListView,
+    graph,
     apiResultsView,
     appView,
     whichList; // whichList keeps track of which list is being displayed
@@ -93,11 +95,28 @@ var Days = Backbone.Firebase.Collection.extend({
     
     initialize: function() {
         this.listenTo(messages, 'newTotals', this.addNewTotals);
-        this.on
     },
     
     addNewTotals: function(totalsModel) {
         this.add(totalsModel);
+    }
+});
+    
+var Graph = Backbone.View.extend({
+    
+    el: '#graph',
+    
+    initialize: function() {
+        this.listenTo(this.collection, 'add', this.render);
+        this.width = graphDiv.width();
+        this.el.width = this.width;
+        this.el.height = 300;
+        this.ctx = this.el.getContext('2d');
+        this.render;
+    },
+    
+    render: function() {
+        this.ctx.clearRect(0, 0, this.width, 300);
     }
 });
 
@@ -114,7 +133,7 @@ var Food = Backbone.Model.extend({
           satFat: 0,
           sodium: 0,
           servings: 0,
-          // today property will be used for flagging items to display in Today's Food list
+          // today property will be used for flagging items to display in Today list
           today: true,
       };
     }
@@ -134,9 +153,9 @@ var FoodView = Backbone.View.extend({
     },
 
     events: {
-        /* Clicking on the last display field will either add a food to Today's Food,
-        if My Food List or list search results are displayed (field will display 'Add'), or
-        increase servings by 1 if Today's Food is displayed (field will display # of servings). */
+        /* Clicking on the last display field will either add a food to Today,
+        if the My Food list or list search results are displayed (field will display 'Add'), or
+        increase servings by 1 if Today is displayed (field will display # of servings). */
         'click .option': 'addFood',
         'dblclick .option': 'incrementServings'
     },
@@ -146,7 +165,7 @@ var FoodView = Backbone.View.extend({
         return this;
     },
 
-    // only add food if Today's Food is not the open list
+    // only add food if Today is not the open list
     addFood: function() {
         messages.trigger('countFood', this.model);
         this.model.set({today: true});
@@ -401,6 +420,7 @@ var AppView = Backbone.View.extend({
             days.add(totalsView.model.attributes);
             totalsView.close();
             totalsView = new TotalsView({model: days.findWhere({date: 0})});
+            graph = new Graph({collection: days});
         });
         foodList.once('sync', function() {
             foodListView = new FoodListView({collection: foodList});
