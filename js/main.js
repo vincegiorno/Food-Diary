@@ -191,15 +191,15 @@ var Graph = Backbone.View.extend({
         ctx.fillText('Calorie totals for the last ' + count + ' days', 60, height + 10);
         // plot line graph
         ctx.beginPath;
-        ctx.moveTo(xPadding, height - points[0].get('calories') * yScale);
+        ctx.moveTo(xPadding, height - data[0] * yScale);
         for (var i = 1; i < count; i++) {
             //console.log(xPadding + xScale * i, height - points[i].get('calories'));
-            ctx.lineTo(xPadding + xScale * i, height - points[i].get('calories') * yScale);
+            ctx.lineTo(xPadding + xScale * i, height - data[i] * yScale);
         }
         ctx.stroke();
         for (var i = 0; i < count; i++) {
             ctx.beginPath();
-            ctx.arc(xPadding + xScale * i, height - points[i].get('calories') * yScale, 2, 0, 2 * Math.PI, true);
+            ctx.arc(xPadding + xScale * i, height - data[i] * yScale, 2, 0, 2 * Math.PI, true);
             ctx.fill();
         }
     }
