@@ -110,13 +110,98 @@ var Graph = Backbone.View.extend({
         this.listenTo(this.collection, 'add', this.render);
         this.width = graphDiv.width();
         this.el.width = this.width;
-        this.el.height = 300;
+        this.height = this.el.height = 280;
         this.ctx = this.el.getContext('2d');
-        this.render;
+        this.render();
     },
     
     render: function() {
-        this.ctx.clearRect(0, 0, this.width, 300);
+        var xPadding = 30,
+            yPadding = 10,
+            yMax = 0,
+            yMin = 20000,
+            xScale,
+            yScale,
+            points,
+            data = [],
+            count,
+            interval,
+            graphMin,
+            width = this.width,
+            height = this.height - 20, // leave room for x-axis label 
+            ctx = this.ctx;
+        ctx.clearRect(0, 0, this.width, this.height);
+        points = this.collection.filter(function(day) {
+            return day.get('date') !== 0
+        });
+        count = points.length;
+        points = count > 14 ? points.slice(count - 14) : points;
+        for (var i = 0; i < count; i++) {
+            var y = data[i] = points[i].get('calories');
+            yMin = y < yMin ? y : yMin;
+            yMax = y > yMax ? y : yMax;
+        }
+        count = points.length;
+        // don't graph if totals all 0 or yMax - yMin > 5000
+        if ((yMax === 0) || (yMax - yMin > 5000)) {
+            alert('The data cannot be graphed. Either there is no data or the difference ' +
+                 'between the highest and lowest totals is too large.');
+            return;
+            }
+        // round yMin down and yMax up to nearest 100
+        yMin -= yMin % 100 + 100;
+        yMax += 100 - yMax % 100;
+        xScale = (width - xPadding - 5)/(count - 1);
+        yScale = (height - yPadding)/(yMax - yMin);
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        // draw y and then x axis //  
+        ctx.moveTo(xPadding, yPadding);  
+        ctx.lineTo(xPadding, height);
+        ctx.lineTo(width, height);
+        ctx.stroke();
+        // determine y-axis intervals based on difference between yMin & yMax
+        switch (Math.floor((yMax-yMin)/500)) {
+            case 0:
+                interval = 25;
+                break;
+            case 1:
+                interval = 50;
+                break;
+            case 2:
+                interval = 100;
+                break;
+            case 3:
+            case 4:
+            case 5:
+                interval = 250;
+                break;
+            default:
+                interval = 500;
+        }
+        // fill in y-axis interval labels
+        graphMin = Math.floor(yMin/interval);
+        ctx.textBaseline = 'middle';
+        for (var i = 1; i <= 10; i++) {
+            ctx.fillText(graphMin + i * interval, 0, height - i * 25);
+        }
+        // add x-axis label
+        ctx.textBaseline = top;
+        ctx.fillText('Calorie totals for the last ' + count + ' days', 60, height + 10);
+        // plot line graph
+        ctx.beginPath;
+        ctx.moveTo(xPadding, height - points[0].get('calories') * yScale);
+        for (var i = 1; i < count; i++) {
+            //console.log(xPadding + xScale * i, height - points[i].get('calories'));
+            ctx.lineTo(xPadding + xScale * i, height - points[i].get('calories') * yScale);
+        }
+        ctx.stroke();
+        for (var i = 0; i < count; i++) {
+            ctx.beginPath();
+            ctx.arc(xPadding + xScale * i, height - points[i].get('calories') * yScale, 2, 0, 2 * Math.PI, true);
+            ctx.fill();
+        }
     }
 });
 
