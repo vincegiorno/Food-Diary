@@ -8,9 +8,10 @@ if (!id) {
 }
 
 // cache jQuery objects, create messages object, declare app-wide variables
-var totalsTable = $('#totals-table'),
+var totalsDiv = $('#totals-div'),
     searchBtn = $('#search-btn'),
     graphDiv = $('#graph-div'),
+    graphBtn = $('#graph-btn'),
     title = $('#table-title'),
     done = $('#done'),
     optionHead = $('#option-head'),
@@ -47,7 +48,7 @@ var Totals = Backbone.Model.extend({
 // the view for displaying the totals
 var TotalsView = Backbone.View.extend({
     
-    tagName: 'tbody',
+    className: 'row',
         
     template: _.template($('#totals-template').html()),
 
@@ -63,10 +64,10 @@ var TotalsView = Backbone.View.extend({
     },
 
     render: function() {
-        totalsTable.empty();
+        totalsDiv.empty();
         this.$el.empty();
         this.$el.append(this.template(this.model.toJSON()));
-        totalsTable.append(this.$el);
+        totalsDiv.append(this.$el);
     },
 
     // update daily total
@@ -108,16 +109,15 @@ var Graph = Backbone.View.extend({
     
     initialize: function() {
         this.listenTo(this.collection, 'add', this.render);
-        this.width = graphDiv.width();
-        this.el.width = this.width;
-        this.height = this.el.height = 280;
+        //this.el.width = this.width;
+        this.el.height = 280;
         this.ctx = this.el.getContext('2d');
         this.render();
     },
     
     render: function() {
         var xPadding = 30,
-            yPadding = 10,
+            yPadding = 20,
             yMax = 0,
             yMin = 20000,
             xScale,
@@ -127,10 +127,21 @@ var Graph = Backbone.View.extend({
             count,
             interval,
             graphMin,
-            width = this.width,
-            height = this.height - 20, // leave room for x-axis label 
+            width,
+            height, 
             ctx = this.ctx;
-        ctx.clearRect(0, 0, this.width, this.height);
+        width = this.el.width = graphDiv.width();
+        // compress graph on small screens
+        if (window.screen.width < 700) {
+            this.el.height = 160;
+            yPadding = 10;
+            ySteps = 5;
+        } else {
+            this.el.height = 270;
+            ySteps = 10;
+        }
+        height = this.el.height - 20; // leave room for x-axis label 
+        ctx.clearRect(0, 0, width, height);
         points = this.collection.filter(function(day) {
             return day.get('date') !== 0
         });
@@ -181,10 +192,11 @@ var Graph = Backbone.View.extend({
                 interval = 500;
         }
         // fill in y-axis interval labels
+        interval = interval * 10 / ySteps; // double interval for small screen
         graphMin = Math.floor(yMin/interval);
         ctx.textBaseline = 'middle';
-        for (var i = 1; i <= 10; i++) {
-            ctx.fillText(graphMin + i * interval, 0, height - i * 25);
+        for (var i = 1; i <= ySteps; i++) {
+            ctx.fillText(graphMin + i * interval, 0, height +10 - i * 25);
         }
         // add x-axis label
         ctx.textBaseline = top;
@@ -201,6 +213,11 @@ var Graph = Backbone.View.extend({
             ctx.beginPath();
             ctx.arc(xPadding + xScale * i, height - data[i] * yScale, 2, 0, 2 * Math.PI, true);
             ctx.fill();
+        }
+        if (window.screen.width < 400) {
+            graphBtn.removeClass('hidden');
+        } else {
+            graphBtn.addClass('hidden');
         }
     }
 });
@@ -401,7 +418,7 @@ var FoodListView = Backbone.View.extend({
 
     // set title, last field heading and 'show' property flag to display Today's Food
     showToday: function() {
-        title.html('Today');
+        title.html('Today\'s food');
         optionHead.html('###');
         done.addClass('hidden');
         whichList = 'today';

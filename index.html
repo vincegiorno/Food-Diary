@@ -13,65 +13,62 @@
 </head>
 
 <body>
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12">
-            <h1>My Food diary</h1>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-xs-12 col-sm-4">
-            <div class="row">
-            <h3 class="pull-left" >Current day totals</h3>
-            <button id="new-day" type="button" class="btn btn-primary pull-right">New day</button>
-            </div>
-            <div class="row">
-            <table id="totals-table" class="table">
-            </table>
-            </div>
-            <form>
-                <div class="form-group">
-                    <label id="search-label" for="search">Search for nutrition information</label>
-                    <input type="text" class="form-control" id="searchbox" placeholder="Ex: broccoli with cheese sauce">
-                    <input id="search-btn" class="btn btn-default" type="submit" value="Submit">
-                    <div id="searching" class="pull-left"></div>
-                    <input id="show-list" class="btn btn-default pull-right" type="submit" value="Show My Food List">
-                    <div class="checkbox">
-                        <label>
-                            <input id="list-search" type="checkbox">Check to search My Food List instead
-                        </label>
-                    </div>
-                </div>
-            </form>
-            <div id="graph-div">
-                <canvas id="graph"></canvas>
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <h1>Food diary</h1>
             </div>
         </div>
 
-        <div class= "col-xs-12 col-sm-8">
-            <div class="row">
-            <h3 id="table-title" class="pull-left">Today</h3>
-            <button id="done" type="button" class="btn btn-primary pull-right">Done</button>
+        <div class="row">
+            <div class="col-xs-12 col-sm-6 col-md-5 col-lg-4">
+                <div class="row">
+                    <h3 class="pull-left" >Today's totals</h3>
+                    <button id="new-day" type="button" class="btn btn-primary pull-right">New day</button>
+                </div>
+                <div id="totals-div">
+                </div>
+                <form>
+                    <div class="form-group">
+                        <label id="search-label" for="searchbox">Search information</label>
+                        <input type="text" class="form-control" id="searchbox" placeholder="Ex: broccoli with cheese sauce">
+                        <input id="search-btn" class="btn btn-default" type="submit" value="in database">
+                        <input id="search-btn" class="btn btn-default" type="submit" value="in My Food">
+                        <input id="show-list" class="btn btn-default" type="submit" value="Show My Food">
+                    </div>
+                </form>
             </div>
-            <div id="food-table-div" class="row">
-            <table id="food-table" class="table">
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Brand</th>
-                        <th>Cal</th>
-                        <th>Tot fat</th>
-                        <th>Sat fat</th>
-                        <th>Sod</th>
-                        <th id="option-head"></th>
-                    </tr>
-                </thead>
-            </table>
+            <div class= "col-xs-12 col-sm-6 col-md-7 col-lg-8">
+                <div class="row">
+                <div id="graph-div">
+                    <canvas id="graph"></canvas>
+                </div>
+                </div>
             </div>
         </div>
-    </div>
-    
+        <div class="row">
+            <h3 id="table-title" class="pull-left">Today</h3>
+            <button id="done" type="button" class="btn btn-primary pull-right hidden">Done</button>
+            <button id="graph-btn" type="button" class="btn pull-right hidden">Show/hide graph</button>
+        </div>
+        <!--<div class="row">-->
+            <div id="food-table-div" class="row">
+                <table id="food-table" class="table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Brand</th>
+                            <th>Cal</th>
+                            <th>Tot fat</th>
+                            <th>Sat fat</th>
+                            <th>Sod</th>
+                            <th id="option-head"></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        <!--</div>-->
+
     </div>
     
     <!-- Load JS libraries and app js -->
@@ -86,16 +83,10 @@
     <!-- Templates -->
     
     <script type="text/template" id="totals-template">
-        <tr>
-            <td id="cal" colspan="2"><b>Calories: <%= Math.round(calories) %></b></td>
-        </tr>
-        <tr>
-            <td id="tot"><b>Total fat (g): <%= Math.round(totFat * 10)/10 %></b></td>
-            <td id="sat"><b>(saturated, g): <%= Math.round(satFat * 10)/10 %></b></td>
-        </tr>
-        <tr>
-            <td id="sod" colspan="2"><b>Sodium (mg): <%= Math.round(sodium * 10)/10 %></b></td>
-        </tr>
+        <div class="col-xs-6 col-md-12"><b>Calories: <%= Math.round(calories) %></b></div>
+        <div class="col-xs-6 col-md-12 second-col"><b>Sodium (mg): <%= Math.round(sodium * 10)/10 %></b></div>
+        <div class="col-xs-6 col-md-12"><b>Total fat (g): <%= Math.round(totFat * 10)/10 %></b></div>
+        <div class="col-xs-6 col-md-12 second-col"><b>Saturated fat (g): <%= Math.round(satFat * 10)/10 %></b></div>
     </script>
     
     <script type="text/template" id="food-template">

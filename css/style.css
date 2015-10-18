@@ -4,29 +4,32 @@ body {
 
 .container {
     margin: 0 auto;
+    width: 100%;
 }
 
 h1 {
     text-align: center;
+    font-size: 7vmin;
 }
 
 h3 {
     margin-top: 5px;
     text-align: center;
     padding-left: 5px;
+    font-size: 5.5vmin;
 }
 
-#totals-table {
-    height: 110px;
+#totals-div {
+    height: 50px;
+}
+
+#new-day {
+    margin-right: 15px;
 }
 
 .graph {
     width: 100%;
-    height: 300px;
-}
-
-#table-title {
-    width: 90%;
+    height: 310px;
 }
 
 .table {
@@ -72,10 +75,17 @@ h3 {
     margin-top: 0;
 }
 
-
 @media (orientation: landscape), (min-width: 900px) {
     .container {
         max-width: 1000px;
         align-content: center;
+    }
+}
+
+@media (orientation: landscape), (max-width: 700px) {
+    .second-col {
+        padding: 0;
+        position: relative;
+        right: 15px;
     }
 }
