@@ -75,14 +75,14 @@ h3 {
     margin-top: 0;
 }
 
-@media (orientation: landscape), (min-width: 900px) {
+@media (orientation: landscape) and (min-width: 900px) {
     .container {
         max-width: 1000px;
         align-content: center;
     }
 }
 
-@media (orientation: landscape), (max-width: 700px) {
+@media (orientation: landscape) and (max-width: 700px) {
     .second-col {
         padding: 0;
         position: relative;

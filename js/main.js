@@ -404,22 +404,22 @@ var FoodListView = Backbone.View.extend({
                 }
                 if (whichList !== 'results') {
                     view.$('.item').hover( function() {
-                        $(this).find('.delete').show();
+                        $(this).find('.delete').css('visibility', 'visible');
                     }, function() {
-                        $(this).find('.delete').hide();
+                        $(this).find('.delete').css('visibility', 'hidden');
                     });
                 }
                 view.$el.appendTo(list.$el);
             }
         });
-       list.$(".delete").hide();
+       list.$(".delete").css('visibility', 'hidden');
        foodTable.append(list.$el);
     },
 
     // set title, last field heading and 'show' property flag to display Today's Food
     showToday: function() {
         title.html('Today\'s food');
-        optionHead.html('###');
+        optionHead.html('##');
         done.addClass('hidden');
         whichList = 'today';
         this.collection.each(function(food) {
@@ -534,6 +534,7 @@ var AppView = Backbone.View.extend({
         'click #new-day': 'changeDay',
         'click #search-btn': 'search',
         'click #show-list': 'showMyList',
+        'click #graph-btn': 'toggleGraph',
         'click #done': 'goToday'
     },
 
@@ -590,6 +591,14 @@ var AppView = Backbone.View.extend({
         messages.trigger('closeList'); // signal any open list view to close
         foodListView = new FoodListView({collection: foodList, option: 'all'});
         return false;
+    },
+    
+    toggleGraph: function() {
+        if (graphDiv.hasClass('hidden')) {
+            graphDiv.removeClass('hidden');
+        } else {
+            graphDiv.addClass('hidden');
+        }
     },
 
     goToday: function() {
