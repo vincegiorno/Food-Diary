@@ -57,8 +57,9 @@ var TotalsView = Backbone.View.extend({
         this.render();
         this.listenTo(this.model, 'change', this.render);
         // countFood message will be sent from clicks on a FoodView
-  		this.listenTo(messages, 'countFood', this.updateTotals);
-  		this.listenTo(messages, 'servingAdded', this.updateTotals);
+  		this.listenTo(messages, 'countFood', this.adjustTotalsUp);
+  		this.listenTo(messages, 'servingAdded', this.adjustTotalsUp);
+        this.listenTo(messages, 'adjustTotalsDown', this.adjustTotalsDown);
         // saveDay message is sent from click event on New Day button
         this.listenTo(messages, 'newDay', this.saveDay);
     },
@@ -71,12 +72,21 @@ var TotalsView = Backbone.View.extend({
     },
 
     // update daily total
-    updateTotals: function(data) {
+    adjustTotalsUp: function(data) {
         this.model.set({
             calories: this.model.get('calories') + data.get('calories'),
             totFat: this.model.get('totFat') + data.get('totFat'),
             satFat: this.model.get('satFat') + data.get('satFat'),
             sodium: this.model.get('sodium') + data.get('sodium')
+        });
+    },
+    
+    adjustTotalsDown: function(data) {
+        this.model.set({
+            calories: this.model.get('calories') - data.get('calories'),
+            totFat: this.model.get('totFat') - data.get('totFat'),
+            satFat: this.model.get('satFat') - data.get('satFat'),
+            sodium: this.model.get('sodium') - data.get('sodium')
         });
     },
     
@@ -251,7 +261,6 @@ var FoodView = Backbone.View.extend({
 
     initialize: function() {
         this.render();
-        this.listenTo(messages, 'incrementServings', this.incrementServings);
     },
 
     events: {
@@ -259,7 +268,7 @@ var FoodView = Backbone.View.extend({
         if the My Food list or list search results are displayed (field will display 'Add'), or
         increase servings by 1 if Today is displayed (field will display # of servings). */
         'click .option': 'addFood',
-        'dblclick .option': 'incrementServings'
+        'click .delete': 'removeFood'
     },
 
     render: function() {
@@ -286,6 +295,33 @@ var FoodView = Backbone.View.extend({
             this.$('.option').html(newServings);
         }
         return false;
+    },
+    
+    removeFood: function() {
+        // Remove if not on Today's Food list
+        if (!this.model.get('today')) {
+            messages.trigger('removeFood', this.model);
+            return;
+        }
+        // Must be removed from Today's Food first
+        if (whichList !== 'today') {
+            alert('Foods on the Today\'s Food list cannot be removed');
+            return;
+        }
+        // On Today's Food list
+        var newServings = this.model.get('servings') - 1;
+        // Servings > 1, so decrement & adjust totals
+        if (newServings) {
+            this.model.set({servings: newServings});
+            this.$('.option').html(newServings);
+            messages.trigger('adjustTotalsDown', this.model);
+        // Servings = 1, so decrement & remove from Today's Food
+        } else {
+            this.model.set({servings: newServings});
+            this.model.set({today: false});
+            messages.trigger('adjustTotalsDown', this.model);
+            messages.trigger('reviseToday');
+        }
     }
 });
 
@@ -301,6 +337,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
         this.listenTo(messages, 'closeList', this.clearShow);
         this.listenTo(messages, 'newDay', this.clearToday);
         this.listenTo(messages, 'searchList', this.searchList);
+        this.listenTo(messages, 'removeFood', this.removeFood);
     },
     
     checkFood: function(food) {
@@ -319,7 +356,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
             food.set({show: false});
             foodArray.push(food);
         });
-        this.set(foodArray);  
+        this.reset(foodArray);  
     },
     
     clearToday: function() {
@@ -328,7 +365,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
             food.set({today: false, servings: 0});
             foodArray.push(food);
         });
-        this.set(foodArray);
+        this.reset(foodArray);
     },
     
     searchList: function(phrase) {
@@ -359,8 +396,12 @@ var FoodList = Backbone.Firebase.Collection.extend({
             }
             foodArray.push(food);
         });
-        this.set(foodArray);
+        this.reset(foodArray);
         messages.trigger('listSearchComplete', found);
+    },
+    
+    removeFood: function(food) {
+        this.remove(food);
     }
 });
     
@@ -374,10 +415,10 @@ var FoodListView = Backbone.View.extend({
     defaulting to Today's Food if option is null */
     initialize: function (params){
         this.option = params.option;
-        // searchList signals to display search results from My Food List
         this.isFound = params.isFound;
+        // 'resultsReady' signals to display search results from My Food
         this.listenTo(messages, 'resultsReady', this.showResults);
-        // showMyList signals to show My Food List
+        // 'showMyList' signals to show My Food list
         this.listenTo(messages, 'showMyList', this.showAll);
         // remove view if API search returns success
         this.listenTo(messages, 'closeList', this.close);
@@ -419,12 +460,14 @@ var FoodListView = Backbone.View.extend({
     // set title, last field heading and 'show' property flag to display Today's Food
     showToday: function() {
         title.html('Today\'s food');
-        optionHead.html('##');
+        optionHead.html('#');
         done.addClass('hidden');
         whichList = 'today';
         this.collection.each(function(food) {
             if (food.get('today')) {
                 food.set({show: true});
+            } else{
+                food.set({show: false});
             }
         });
         this.render();
@@ -528,6 +571,8 @@ var AppView = Backbone.View.extend({
             foodListView = new FoodListView({collection: foodList});
         });
         this.listenTo(messages, 'listSearchComplete', this.openListResults);
+        // 'reviseToday' signals to re-render Today's food
+        this.listenTo(messages, 'reviseToday', this.goToday);
     },
 
     events: {
