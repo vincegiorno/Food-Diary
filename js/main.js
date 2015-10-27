@@ -9,7 +9,9 @@ if (!id) {
 
 // cache jQuery objects, create messages object, declare app-wide variables
 var totalsDiv = $('#totals-div'),
-    searchBtn = $('#search-btn'),
+    searchBox = $('#searchbox'),
+    searchDbase = $('#search-dbase'),
+    searchMyList = $('#search-my-list'),
     graphDiv = $('#graph-div'),
     graphBtn = $('#graph-btn'),
     title = $('#table-title'),
@@ -47,21 +49,21 @@ var Totals = Backbone.Model.extend({
 
 // the view for displaying the totals
 var TotalsView = Backbone.View.extend({
-    
+
     className: 'row',
-        
+
     template: _.template($('#totals-template').html()),
 
     // the model and messages object will be passed in on instantiation
     initialize: function() {
-        this.render();
-        this.listenTo(this.model, 'change', this.render);
-        // countFood message will be sent from clicks on a FoodView
+      this.render();
+      this.listenTo(this.model, 'change', this.render);
+      // countFood message will be sent from clicks on a FoodView
   		this.listenTo(messages, 'countFood', this.adjustTotalsUp);
   		this.listenTo(messages, 'servingAdded', this.adjustTotalsUp);
-        this.listenTo(messages, 'adjustTotalsDown', this.adjustTotalsDown);
-        // saveDay message is sent from click event on New Day button
-        this.listenTo(messages, 'newDay', this.saveDay);
+      this.listenTo(messages, 'adjustTotalsDown', this.adjustTotalsDown);
+      // saveDay message is sent from click event on New Day button
+      this.listenTo(messages, 'newDay', this.saveDay);
     },
 
     render: function() {
@@ -80,7 +82,7 @@ var TotalsView = Backbone.View.extend({
             sodium: this.model.get('sodium') + data.get('sodium')
         });
     },
-    
+
     adjustTotalsDown: function(data) {
         this.model.set({
             calories: this.model.get('calories') - data.get('calories'),
@@ -89,11 +91,11 @@ var TotalsView = Backbone.View.extend({
             sodium: this.model.get('sodium') - data.get('sodium')
         });
     },
-    
+
     saveDay: function() {
         var today = Date.now();
         this.model.set({date: today});
-        this.close;
+        this.close();
     }
 });
 
@@ -103,20 +105,20 @@ var Days = Backbone.Firebase.Collection.extend({
     model: Totals,
 
     url: fbUrl + id + '/days',
-    
+
     initialize: function() {
         this.listenTo(messages, 'newTotals', this.addNewTotals);
     },
-    
+
     addNewTotals: function(totalsModel) {
         this.add(totalsModel);
     }
 });
-    
+
 var Graph = Backbone.View.extend({
-    
+
     el: '#graph',
-    
+
     initialize: function() {
         this.listenTo(this.collection, 'add', this.render);
         //this.el.width = this.width;
@@ -124,7 +126,7 @@ var Graph = Backbone.View.extend({
         this.ctx = this.el.getContext('2d');
         this.render();
     },
-    
+
     render: function() {
         var xPadding = 30,
             yPadding = 20,
@@ -138,7 +140,7 @@ var Graph = Backbone.View.extend({
             interval,
             graphMin,
             width,
-            height, 
+            height,
             ctx = this.ctx;
         width = this.el.width = graphDiv.width();
         // compress graph on small screens
@@ -150,10 +152,10 @@ var Graph = Backbone.View.extend({
             this.el.height = 270;
             ySteps = 10;
         }
-        height = this.el.height - 20; // leave room for x-axis label 
+        height = this.el.height - 20; // leave room for x-axis label
         ctx.clearRect(0, 0, width, height);
         points = this.collection.filter(function(day) {
-            return day.get('date') !== 0
+            return day.get('date') !== 0;
         });
         count = points.length;
         points = count > 14 ? points.slice(count - 14) : points;
@@ -177,8 +179,8 @@ var Graph = Backbone.View.extend({
         ctx.strokeStyle = "black";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        // draw y and then x axis //  
-        ctx.moveTo(xPadding, yPadding);  
+        // draw y and then x axis //
+        ctx.moveTo(xPadding, yPadding);
         ctx.lineTo(xPadding, height);
         ctx.lineTo(width, height);
         ctx.stroke();
@@ -205,21 +207,21 @@ var Graph = Backbone.View.extend({
         interval = interval * 10 / ySteps; // double interval for small screen
         graphMin = Math.floor(yMin/interval);
         ctx.textBaseline = 'middle';
-        for (var i = 1; i <= ySteps; i++) {
+        for (i = 1; i <= ySteps; i++) {
             ctx.fillText(graphMin + i * interval, 0, height +10 - i * 25);
         }
         // add x-axis label
         ctx.textBaseline = top;
         ctx.fillText('Calorie totals for the last ' + count + ' days', 60, height + 10);
         // plot line graph
-        ctx.beginPath;
+        ctx.beginPath();
         ctx.moveTo(xPadding, height - data[0] * yScale);
-        for (var i = 1; i < count; i++) {
+        for (i = 1; i < count; i++) {
             //console.log(xPadding + xScale * i, height - points[i].get('calories'));
             ctx.lineTo(xPadding + xScale * i, height - data[i] * yScale);
         }
         ctx.stroke();
-        for (var i = 0; i < count; i++) {
+        for (i = 0; i < count; i++) {
             ctx.beginPath();
             ctx.arc(xPadding + xScale * i, height - data[i] * yScale, 2, 0, 2 * Math.PI, true);
             ctx.fill();
@@ -281,7 +283,7 @@ var FoodView = Backbone.View.extend({
         messages.trigger('countFood', this.model);
         this.model.set({today: true});
         if (whichList === 'apiResults') {
-            messages.trigger('foodToAdd', this.model)
+            messages.trigger('foodToAdd', this.model);
         } else {
             this.incrementServings();
         }
@@ -296,11 +298,12 @@ var FoodView = Backbone.View.extend({
         }
         return false;
     },
-    
+
     removeFood: function() {
         // Remove if not on Today's Food list
         if (!this.model.get('today')) {
             messages.trigger('removeFood', this.model);
+            messages.trigger('reviseMyList');
             return;
         }
         // Must be removed from Today's Food first
@@ -331,7 +334,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
     model: Food,
 
     url: fbUrl + id + '/food',
-    
+
     initialize: function() {
         this.listenTo(messages, 'foodToAdd', this.checkFood);
         this.listenTo(messages, 'closeList', this.clearShow);
@@ -339,7 +342,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
         this.listenTo(messages, 'searchList', this.searchList);
         this.listenTo(messages, 'removeFood', this.removeFood);
     },
-    
+
     checkFood: function(food) {
         var found = this.findWhere({itemId: food.get('itemId')});
         if (!found) {
@@ -349,16 +352,16 @@ var FoodList = Backbone.Firebase.Collection.extend({
             found.set({servings: newServings});
         }
     },
-    
+
     clearShow: function() {
       var foodArray = [];
         this.each(function(food) {
             food.set({show: false});
             foodArray.push(food);
         });
-        this.reset(foodArray);  
+        this.reset(foodArray);
     },
-    
+
     clearToday: function() {
         var foodArray = [];
         this.each(function(food) {
@@ -367,7 +370,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
         });
         this.reset(foodArray);
     },
-    
+
     searchList: function(phrase) {
         // turn search phrase into array of terms
         var words = phrase.split(' '),
@@ -391,7 +394,7 @@ var FoodList = Backbone.Firebase.Collection.extend({
             // if all terms were found, display flag is still set to true
             food.set({show: showThis});
             if (showThis) {
-                // at least one food item matched 
+                // at least one food item matched
                 found = true;
             }
             foodArray.push(food);
@@ -399,12 +402,12 @@ var FoodList = Backbone.Firebase.Collection.extend({
         this.reset(foodArray);
         messages.trigger('listSearchComplete', found);
     },
-    
+
     removeFood: function(food) {
         this.remove(food);
     }
 });
-    
+
 /* Set up list views for Today's Food, My Food List and resluts of searching My Food List,
 all of which use the same basic list, showing or hiding items as appropriate. */
 var FoodListView = Backbone.View.extend({
@@ -551,17 +554,17 @@ var ApiResultsView = Backbone.View.extend({
         done.removeClass('hidden');
     }
 });
-    
+
 var AppView = Backbone.View.extend({
 
     el: 'body',
 
     initialize: function() {
         // instantiate the totals model, days collection of daily totals and first totals view
-        days = new Days;
-        foodList = new FoodList;
+        days = new Days();
+        foodList = new FoodList();
         days.once('sync', function() {
-            totalsView = new TotalsView({model: days.findWhere({date: 0}) || new Totals});
+            totalsView = new TotalsView({model: days.findWhere({date: 0}) || new Totals()});
             days.add(totalsView.model.attributes);
             totalsView.close();
             totalsView = new TotalsView({model: days.findWhere({date: 0})});
@@ -572,12 +575,14 @@ var AppView = Backbone.View.extend({
         });
         this.listenTo(messages, 'listSearchComplete', this.openListResults);
         // 'reviseToday' signals to re-render Today's food
+        this.listenTo(messages, 'reviseMyList', this.showMyList);
         this.listenTo(messages, 'reviseToday', this.goToday);
     },
 
     events: {
         'click #new-day': 'changeDay',
-        'click #search-btn': 'search',
+        'click #search-dbase': 'searchAPI',
+        'click #search-my-list': 'searchList',
         'click #show-list': 'showMyList',
         'click #graph-btn': 'toggleGraph',
         'click #done': 'goToday'
@@ -588,46 +593,49 @@ var AppView = Backbone.View.extend({
     changeDay: function() {
         messages.trigger('newDay');
         messages.trigger('closeList');
-        totalsView = new TotalsView({model: new Totals});
+        totalsView = new TotalsView({model: new Totals()});
         days.add(totalsView.model.attributes);
         totalsView.close();
         totalsView = new TotalsView({model: days.findWhere({date: 0})});
         foodListView = new FoodListView({collection: foodList});
     },
 
-    // route search to stored My Food List or make AJAX call to Nutrionix API
-    search: function() {
-        searchPhrase = $('#searchbox').val();
-        if (searchPhrase === '') {
-            return;
-        }
-        // signal to close any open list view
-        messages.trigger('closeList');
-        if ($('#list-search').prop('checked')) {
-            // search My Food list
-            messages.trigger('searchList', searchPhrase);
-        } else {
-            this.searchAPI(searchPhrase);
-        }
-        return false; // stop page from refreshing, which will reset right-hand div
+    // API call
+    searchAPI: function() {
+      var phrase = searchBox.val();
+      console.log(phrase);
+      if (phrase === '') {
+          return false;
+      }
+      phrase = encodeURIComponent(phrase); // format for URL query string
+      var queryUrl = ntrxUrl + phrase; // URL base stored in config.js
+      messages.trigger('closeList');
+      searchDbase.attr('value', 'Searching...');
+      $.getJSON(queryUrl,ntrxParams) // search params stored in config.js
+          .done(function(result) {
+              var results = result.hits;
+              searchDbase.attr('value', 'Submit');
+              if (!results) {
+                title.html('No matches. Try again or search the database');
+              } else {
+              // pass results to initialize new results list display
+              apiResultsView = new ApiResultsView({results: results});
+            }
+      })
+          .fail(function() {
+          title.html('Search request failed. Please check your Internet connection and try again');
+      });
+      return false;
     },
 
-    // API call
-    searchAPI: function(phrase) {
-        var self = this,
-            searchWords = escape(phrase); // format for URL query string
-        var queryUrl = ntrxUrl + searchWords; // URL base stored in config.js
-        searchBtn.attr('value', 'Searching...');
-        $.getJSON(queryUrl,ntrxParams) // search params stored in config.js
-            .done(function(result) {
-                var results = result.hits;
-                searchBtn.attr('value', 'Submit');
-                // pass results to initialize new results list display
-                apiResultsView = new ApiResultsView({results: results});
-        })
-            .fail(function() {
-            title.html('Search request failed. Please check your Internet connection and try again');
-        });
+    searchList: function(phrase) {
+      phrase = searchBox.val();
+      if (phrase === '') {
+          return false;
+      }
+      messages.trigger('closeList');
+      messages.trigger('searchList', phrase);
+      return false;
     },
 
     // show My Foods List
@@ -637,7 +645,7 @@ var AppView = Backbone.View.extend({
         foodListView = new FoodListView({collection: foodList, option: 'all'});
         return false;
     },
-    
+
     toggleGraph: function() {
         if (graphDiv.hasClass('hidden')) {
             graphDiv.removeClass('hidden');
@@ -650,12 +658,12 @@ var AppView = Backbone.View.extend({
         messages.trigger('closeList');
         foodListView = new FoodListView({collection: foodList});
     },
-    
+
     openListResults: function(isFound) {
         foodListView = new FoodListView({collection: foodList, option: 'results', isFound: isFound});
     }
 });
 
-appView = new AppView;
+appView = new AppView();
 
 });

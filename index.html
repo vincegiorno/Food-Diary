@@ -1,12 +1,12 @@
-<!doctype html>  
-<html lang="en">  
-<head>  
+<!doctype html>
+<html lang="en">
+<head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
   <title>Calories Diary</title>
-    
-    
+
+
   <link rel="stylesheet" href="libs/bootstrap.min.css">
   <link rel="stylesheet" href="libs/bootstrap-theme.min.css">
   <link rel="stylesheet" href="css/style.css">
@@ -21,24 +21,26 @@
         </div>
 
         <div class="row">
-            <div class="col-xs-12 col-sm-6 col-md-5 col-lg-4">
+            <div class="col-xs-12 col-sm-6 col-md-5">
                 <div class="row">
                     <h3 class="pull-left" >Today's totals</h3>
                     <button id="new-day" type="button" class="btn btn-primary pull-right">New day</button>
                 </div>
                 <div id="totals-div">
                 </div>
-                <form>
-                    <div class="form-group">
-                        <label id="search-label" for="searchbox">Search information</label>
-                        <input type="text" class="form-control" id="searchbox" placeholder="Ex: broccoli with cheese sauce">
-                        <input id="search-btn" class="btn btn-default" type="submit" value="in database">
-                        <input id="search-btn" class="btn btn-default" type="submit" value="in My Food">
-                        <input id="show-list" class="btn btn-default" type="submit" value="Show My Food">
-                    </div>
-                </form>
+                <div class="row">
+                  <form>
+                      <div class="form-group">
+                          <label id="search-label" for="searchbox">Search for nutrition information</label>
+                          <input type="text" class="form-control" id="searchbox" placeholder="Ex: Kraft macaroni cheese">
+                          <input id="search-dbase" class="btn btn-default" type="submit" value="in database">
+                          <input id="search-my-list" class="btn btn-default" type="submit" value="in My Food">
+                          <input id="show-list" class="btn btn-default" type="submit" value="Show My Food">
+                      </div>
+                  </form>
+              </div>
             </div>
-            <div class= "col-xs-12 col-sm-6 col-md-7 col-lg-8">
+            <div class= "col-xs-12 col-sm-6 col-md-7">
                 <div class="row">
                     <div id="graph-div">
                         <canvas id="graph"></canvas>
@@ -70,7 +72,7 @@
         <!--</div>-->
 
     </div>
-    
+
     <!-- Load JS libraries and app js -->
     <script src="libs/jquery-min.js"></script>
     <script src="libs/underscore-min.js"></script>
@@ -79,16 +81,16 @@
     <script src="libs/backbonefire.min.js"></script>
     <script src="js/config.js"></script>
     <script src="js/main.js"></script>
-    
+
     <!-- Templates -->
-    
+
     <script type="text/template" id="totals-template">
         <div class="col-xs-6 col-md-12"><b>Calories: <%= Math.round(calories) %></b></div>
         <div class="col-xs-6 col-md-12 second-col"><b>Sodium (mg): <%= Math.round(sodium * 10)/10 %></b></div>
         <div class="col-xs-6 col-md-12"><b>Total fat (g): <%= Math.round(totFat * 10)/10 %></b></div>
         <div class="col-xs-6 col-md-12 second-col"><b>Saturated fat (g): <%= Math.round(satFat * 10)/10 %></b></div>
     </script>
-    
+
     <script type="text/template" id="food-template">
         <td class="item"><%= item %><img class="delete" src="images/delete.png" alt="delete button" /></td>
         <td><%= brand %></td>
@@ -98,7 +100,7 @@
         <td><%= sodium %></td>
         <td class="option"><%= servings %></td>
     </script>
-    
+
 </body>
-    
+
 </html>
