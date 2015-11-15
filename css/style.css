@@ -1,91 +1,127 @@
 body {
-    height: 700px;
+  height: 700px;
 }
 
 .container {
-    margin: 0 auto;
-    width: 100%;
+  margin: 0 auto;
+  width: 100%;
 }
 
 h1 {
-    text-align: center;
-    font-size: 7vmin;
+  text-align: center;
+  font-size: 7.5vmin;
 }
 
 h3 {
-    margin-top: 5px;
-    text-align: center;
-    padding-left: 5px;
-    font-size: 5.5vmin;
+  color: #337ab7;
+  margin: 0 10px 0 0;
+  text-align: center;
+  padding-left: 5px;
+  font-size: 5.5vmin;
 }
 
-#totals-div {
-    height: 50px;
+.totals-header {
+  margin-right: 1px;
 }
 
-#new-day {
-    margin-right: 15px;
+.totals {
+  height: 40px;
+  margin-top: 10px;
+}
+
+form {
+  padding-top: 10px;
 }
 
 .form-group {
-    margin-bottom: 5px
+  margin: 0 5px 10px 5px;
 }
 
 .form-group label {
-    font-size: 16px;
+  font-size: 16px;
+}
+
+input {
+  max-width: 95%;
 }
 
 #search-label {
-    padding-left: 5px;
+  color: #337ab7;
+  padding-left: 5px;
 }
 
 #searching {
-    padding-left: 5px;
+  padding-left: 5px;
 }
 
-.checkbox {
-    margin-top: 0;
+.btn {
+  margin: 14px 10px 0 0;
+  padding: 2px 5px;
 }
 
-.graph {
-    width: 100%;
-    height: 310px;
+.input-btn {
+  margin: 5px;
+}
+
+.table-btn {
+  margin: 0;
+  padding: 1px 2px;
+}
+
+.food-table-header {
+  margin-right: 5px;
 }
 
 .table {
-    width: 100%;
-    margin-bottom: 5px;
+  width: 100%;
+  margin-bottom: 5px;
 }
 
 #food-table-div {
-    height: 400px;
-    overflow: scroll;
+  height: 400px;
+  overflow: scroll;
 }
 
 #food-table {
-    width: 100%;
-    margin-top: 5px;
+  width: 100%;
+  margin-top: 5px;
 }
 
 #food-table td {
-    max-width: 300px;
+  max-width: 300px;
 }
 
-#food-table img {
-    margin-left: 3px;
+.close {
+  float: none;
 }
 
-@media (orientation: landscape) and (min-width: 900px) {
-    .container {
-        max-width: 1000px;
-        align-content: center;
-    }
+@media (min-width: 700px) {
+  .totals {
+    height: 80px;
+  }
+}
+
+@media (min-width: 900px) {
+  .container {
+    max-width: 1000px;
+    align-content: center;
+  }
 }
 
 @media (orientation: landscape) and (max-width: 700px) {
-    .second-col {
-        padding: 0;
-        position: relative;
-        right: 15px;
-    }
+  .second-col {
+    padding: 0;
+    position: relative;
+    right: 15px;
+  }
+}
+
+@media (max-width: 700px) {
+  .btn {
+    margin-top: 0;
+  }
+
+  .table-btn {
+    margin: 0;
+  }
 }

@@ -12,6 +12,7 @@ var totalsDiv = $('#totals-div'),
     searchBox = $('#searchbox'),
     searchDbase = $('#search-dbase'),
     searchMyList = $('#search-my-list'),
+    listBtn = $('#show-list'),
     graphDiv = $('#graph-div'),
     graphBtn = $('#graph-btn'),
     title = $('#table-title'),
@@ -142,7 +143,7 @@ var Graph = Backbone.View.extend({
             width,
             height,
             ctx = this.ctx;
-        width = this.el.width = graphDiv.width();
+        width = this.el.width = graphDiv.width() - 5;
         // compress graph on small screens
         if (window.screen.width < 700) {
             this.el.height = 160;
@@ -215,6 +216,7 @@ var Graph = Backbone.View.extend({
         ctx.fillText('Calorie totals for the last ' + count + ' days', 60, height + 10);
         // plot line graph
         ctx.beginPath();
+        ctx.strokeStyle = '#337ab7';
         ctx.moveTo(xPadding, height - data[0] * yScale);
         for (i = 1; i < count; i++) {
             //console.log(xPadding + xScale * i, height - points[i].get('calories'));
@@ -294,7 +296,7 @@ var FoodView = Backbone.View.extend({
         var newServings = this.model.get('servings') + 1;
         this.model.set({servings: newServings});
         if (whichList === 'today') {
-            this.$('.option').html(newServings);
+            this.$('.option').text(newServings);
         }
         return false;
     },
@@ -316,7 +318,7 @@ var FoodView = Backbone.View.extend({
         // Servings > 1, so decrement & adjust totals
         if (newServings) {
             this.model.set({servings: newServings});
-            this.$('.option').html(newServings);
+            this.$('.option').text(newServings);
             messages.trigger('adjustTotalsDown', this.model);
         // Servings = 1, so decrement & remove from Today's Food
         } else {
@@ -440,29 +442,36 @@ var FoodListView = Backbone.View.extend({
    render: function(optionAdd) {
         var view,
             list = this;
-        this.collection.each(function(food) {
+        list.collection.each(function(food) {
             if (food.get('show')) {
                 view = new FoodView({model: food});
                 if (optionAdd) {
-                    view.$('.option').html('Add');
+                    view.$('.option').text('Add');
                 }
-                if (whichList !== 'results') {
+                /*if (whichList !== 'results') {
                     view.$('.item').hover( function() {
                         $(this).find('.delete').css('visibility', 'visible');
                     }, function() {
                         $(this).find('.delete').css('visibility', 'hidden');
                     });
-                }
+                }*/
                 view.$el.appendTo(list.$el);
             }
         });
-       list.$(".delete").css('visibility', 'hidden');
+       list.$('.delete').css('visibility', 'hidden');
+       if (whichList !== 'results') {
+       list.$('.item').hover( function() {
+             $(this).find('.delete').css('visibility', 'visible');
+         }, function() {
+             $(this).find('.delete').css('visibility', 'hidden');
+         });
+       }
        foodTable.append(list.$el);
     },
 
-    // set title, last field heading and 'show' property flag to display Today's Food
+    // set title, last field heading and 'show' property flag to display Today's food
     showToday: function() {
-        title.html('Today\'s food');
+        title.html('Today');
         optionHead.html('#');
         done.addClass('hidden');
         whichList = 'today';
@@ -481,8 +490,8 @@ var FoodListView = Backbone.View.extend({
     showResults: function(isFound) {
         // display results if at least one match found
         if (isFound) {
-            title.html('Matches found on my list');
-            optionHead.html('Add today');
+            title.html('Add to Today');
+            optionHead.text('+');
             this.render(true);
             done.removeClass('hidden');
             whichList = 'results';
@@ -499,7 +508,7 @@ var FoodListView = Backbone.View.extend({
             return;
         }
         title.html('My List');
-        optionHead.html('Add today');
+        optionHead.text('+');
         this.collection.each(function(food) {
             food.set({show: true});
         });
@@ -515,7 +524,7 @@ var ApiResultsView = Backbone.View.extend({
     tagName: 'tbody',
 
     initialize: function(params) {
-        title.html('Add any of these to Today\'s Food');
+        title.html('Add to Today');
         // results from call and messages object passed in on instantiation
         whichList = 'apiResults';
         this.results = params.results;
@@ -525,7 +534,7 @@ var ApiResultsView = Backbone.View.extend({
         this.listenTo(messages, 'closeList', this.close);
         this.render();
         // set last field header
-        optionHead.html('Add today');
+        optionHead.text('+');
     },
 
     render: function() {
@@ -545,11 +554,12 @@ var ApiResultsView = Backbone.View.extend({
                 servings: 1
             });
             view = new FoodView({model: food});
-            view.$('.option').html('Add');
+            view.$('.option').text('Add');
             // append to default div to limit draws
             this.$el.append(view.$el);
         }
         // replace placeholder row with one draw
+        this.$('.delete').css('visibility', 'hidden');
         foodTable.append(this.$el);
         done.removeClass('hidden');
     }
@@ -614,7 +624,7 @@ var AppView = Backbone.View.extend({
       $.getJSON(queryUrl,ntrxParams) // search params stored in config.js
           .done(function(result) {
               var results = result.hits;
-              searchDbase.attr('value', 'Submit');
+              searchDbase.attr('value', 'in database');
               if (!results) {
                 title.html('No matches. Try again or search the database');
               } else {
@@ -643,20 +653,24 @@ var AppView = Backbone.View.extend({
         // if apiResultsView is open, close it and initialize foodListView to show the whole list
         messages.trigger('closeList'); // signal any open list view to close
         foodListView = new FoodListView({collection: foodList, option: 'all'});
+        listBtn.addClass('hidden');
         return false;
     },
 
     toggleGraph: function() {
         if (graphDiv.hasClass('hidden')) {
             graphDiv.removeClass('hidden');
+            graphBtn.text('Hide graph');
         } else {
             graphDiv.addClass('hidden');
+            graphBtn.text('Show graph');
         }
     },
 
     goToday: function() {
         messages.trigger('closeList');
         foodListView = new FoodListView({collection: foodList});
+        listBtn.removeClass('hidden');
     },
 
     openListResults: function(isFound) {
