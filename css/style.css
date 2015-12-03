@@ -1,3 +1,14 @@
+@font-face {
+  font-family: 'Indie Flower';
+  font-style: normal;
+  font-weight: 400;
+  src:
+  local('Indie Flower'),
+  url(https://fonts.gstatic.com/s/indieflower/v8/10JVD_humAd5zP2yrFqw6hampu5_7CjHW5spxoeN3Vs.woff2) format('woff2'),
+  url(https://fonts.gstatic.com/s/indieflower/v8/10JVD_humAd5zP2yrFqw6nhCUOGz7vYGh680lGh-uXM.woff) format('woff'),
+  url(https://fonts.gstatic.com/s/indieflower/v8/10JVD_humAd5zP2yrFqw6qRDOzjiPcYnFooOUGCOsRk.woff) format('woff');
+}
+
 body {
   height: 700px;
 }
@@ -8,16 +19,17 @@ body {
 }
 
 h1 {
+  font: bold 8vmin 'Indie Flower', sans-serif;
   text-align: center;
   font-size: 7.5vmin;
 }
 
 h3 {
+  font: bold 6vmin 'Indie Flower', sans-serif;
   color: #337ab7;
   margin: 0 10px 0 0;
   text-align: center;
   padding-left: 5px;
-  font-size: 5.5vmin;
 }
 
 .totals-header {
@@ -46,6 +58,7 @@ input {
 }
 
 #search-label {
+  font: bold 4.5vmin 'Indie Flower', sans-serif;
   color: #337ab7;
   padding-left: 5px;
 }
@@ -55,7 +68,8 @@ input {
 }
 
 .btn {
-  margin: 14px 10px 0 0;
+  font-family: 'Indie Flower', sans-serif;
+  margin: 0;
   padding: 2px 5px;
 }
 
@@ -63,13 +77,12 @@ input {
   margin: 5px;
 }
 
-.table-btn {
-  margin: 0;
-  padding: 1px 2px;
+.done {
+  margin: 0 0 0 5px;
 }
 
-.food-table-header {
-  margin-right: 5px;
+.table-btn {
+  padding: 1px 2px;
 }
 
 .table {
@@ -82,30 +95,34 @@ input {
   overflow: scroll;
 }
 
-#food-table {
+.food-table-header {
+  margin-right: -10px;
+}
+
+table {
   width: 100%;
   margin-top: 5px;
 }
 
-#food-table td {
+.table thead tr th {
+  font: bold 5vmin 'Indie Flower', sans-serif;
+  padding: 4px;
+}
+
+.table tbody tr td {
   max-width: 300px;
+  padding: 4px;
+}
+
+.option {
+  font-family: sans-serif;
+  margin: 0;
+  padding: 0;
+  text-align: center;
 }
 
 .close {
   float: none;
-}
-
-@media (min-width: 700px) {
-  .totals {
-    height: 80px;
-  }
-}
-
-@media (min-width: 900px) {
-  .container {
-    max-width: 1000px;
-    align-content: center;
-  }
 }
 
 @media (orientation: landscape) and (max-width: 700px) {
@@ -116,12 +133,27 @@ input {
   }
 }
 
-@media (max-width: 700px) {
-  .btn {
-    margin-top: 0;
+@media (min-width: 700px) {
+  .totals {
+    height: 80px;
   }
 
-  .table-btn {
-    margin: 0;
+  .table thead tr th {
+    font-size: 4vmin;
+  }
+
+  .btn {
+    margin-top: 10px;
+  }
+
+  .option {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 1100px) {
+  .container {
+    max-width: 1100px;
+    align-content: center;
   }
 }
