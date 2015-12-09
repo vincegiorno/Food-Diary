@@ -7,6 +7,7 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
     searchMyList = $('#search-my-list'),
     listBtn = $('#show-list'),
     graphDiv = $('#graph-div'),
+    alertGraph = $('#alert-graph'),
     graphBtn = $('#graph-btn'),
     title = $('#table-title'),
     done = $('#done'),
@@ -20,14 +21,13 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
     appView,
     whichList; // whichList keeps track of which list is being displayed
 
-  // grabbed from online as a way to remove views and associated handlers
   Backbone.View.prototype.close = function() {
     this.undelegateEvents();
     this.remove();
     whichList = '';
   };
 
-  // the starting values for the running daily totals displayed in the left-hand div
+  // Starting values for the running daily totals displayed in the left-hand div
   var Totals = Backbone.Model.extend({
     defaults: function() {
       return {
@@ -41,22 +41,21 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
   });
 
 
-  // the view for displaying the totals
+  // View for displaying the totals
   var TotalsView = Backbone.View.extend({
 
     className: 'row',
 
     template: _.template($('#totals-template').html()),
 
-    // the model and messages object will be passed in on instantiation
+    // Model will be passed in on instantiation
     initialize: function() {
       this.render();
       this.listenTo(this.model, 'change', this.render);
-      // countFood message will be sent from clicks on a FoodView
+      // A foodView can send 'countFood' and 'adjustTotalsDown' messages
       this.listenTo(messages, 'countFood', this.adjustTotalsUp);
-      this.listenTo(messages, 'servingAdded', this.adjustTotalsUp);
       this.listenTo(messages, 'adjustTotalsDown', this.adjustTotalsDown);
-      // saveDay message is sent from click event on New Day button
+      // appView send 'newDay' message when 'New day' button is clicked
       this.listenTo(messages, 'newDay', this.saveDay);
     },
 
@@ -67,7 +66,8 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       totalsDiv.append(this.$el);
     },
 
-    // update daily total
+    /* Update daily totals when food added or servings incremented. The relevant
+    food model is passed in as @data. */
     adjustTotalsUp: function(data) {
       this.model.set({
         calories: this.model.get('calories') + data.get('calories'),
@@ -77,6 +77,8 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       });
     },
 
+    /* Update daily totals when servings decremented. The relevant
+    food model is passed in as @data. */
     adjustTotalsDown: function(data) {
       this.model.set({
         calories: this.model.get('calories') - data.get('calories'),
@@ -86,6 +88,9 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       });
     },
 
+    /* Before instantiating a new day, set the 'today' property of the previous
+    day to the current time so the past days are ordered correctly, then close it.
+    A new day has this property set to 0 to identify it as the current day. */
     saveDay: function() {
       var today = Date.now();
       this.model.set({
@@ -95,30 +100,27 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
     }
   });
 
-  // set up collection defaults, Firebase connection
+  // Set up collection defaults, Firebase connection
   var Days = Backbone.Firebase.Collection.extend({
 
     model: Totals,
 
+    // The URL cannot be set when main.js loads, because it can depend on user input
     initialize: function() {
       this.url = fbUrl + id + '/days';
-      this.listenTo(messages, 'newTotals', this.addNewTotals);
-    },
-
-    addNewTotals: function(totalsModel) {
-      this.add(totalsModel);
     }
   });
 
+  // Draw a graph showing total calories for previous days, up to 14 days
   var Graph = Backbone.View.extend({
 
     el: '#graph',
 
     initialize: function() {
+      // Draw a new graph when a new day is added to the collection
       this.listenTo(this.collection, 'add', this.render);
-      //this.el.width = this.width;
-      this.el.height = 280;
       this.ctx = this.el.getContext('2d');
+      // Draw initial graph when the app starts
       this.render();
     },
 
@@ -129,100 +131,91 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
         yMin = 20000,
         xScale,
         yScale,
+        yInterval,
         points,
         data = [],
         count,
-        interval,
-        graphMin,
         width,
         height,
         ctx = this.ctx;
+      graphDiv.removeClass('hidden'); // In case 'hidden' was set previously
+      // Set width dynamically
       width = this.el.width = graphDiv.width() - 5;
-      // compress graph on small screens
+      // Compress graph on small screens
       if (window.screen.width < 700) {
-        this.el.height = 160;
-        yPadding = 10;
+        this.el.height = 170;
+        //yPadding = 10;
         ySteps = 5;
       } else {
-        this.el.height = 270;
+        this.el.height = 280;
         ySteps = 10;
       }
       height = this.el.height - 20; // leave room for x-axis label
       ctx.clearRect(0, 0, width, height);
+      // Get all previous saved days
       points = this.collection.filter(function(day) {
         return day.get('date') !== 0;
       });
+      // Don't graph if less than 2 points
+      if (points.length < 2) {
+        graphAlert();
+        return;
+      }
+      // Limit the days to no more than 14
       if (points.length > 14) {
         points = points.slice(points.length - 14);
       }
+      // Extract total calories from each day, find min and max values
       count = points.length;
       for (var i = 0; i < count; i++) {
         var y = data[i] = points[i].get('calories');
         yMin = y < yMin ? y : yMin;
         yMax = y > yMax ? y : yMax;
       }
-      // don't graph if totals all 0 or yMax - yMin > 5000
-      if ((yMax === 0) || (yMax - yMin > 5000)) {
-        alert('The data cannot be graphed. Either there is no data or the difference ' +
-          'between the highest and lowest totals is too large.');
+      // Don't graph, show message if totals all 0
+      if (yMax === 0) {
+        graphAlert();
         return;
       }
-      // round yMin down and yMax up to nearest 100
+      // Round yMin down and yMax up to nearest 100
       yMin -= yMin % 100 + 100;
+      yMin = yMin < 0 ? 0 : yMin; // Avoid a negative value
       yMax += 100 - yMax % 100;
-      xScale = (width - xPadding - 5) / (count - 1);
+      // Set graph parameters
       yScale = (height - yPadding) / (yMax - yMin);
+      yInterval = (yMax - yMin) / (ySteps);
+      xScale = (width - xPadding - 5) / (count - 1);
       ctx.strokeStyle = "black";
       ctx.lineWidth = 2;
       ctx.beginPath();
-      // draw y and then x axis //
+      // Draw y and then x axis //
       ctx.moveTo(xPadding, yPadding);
       ctx.lineTo(xPadding, height);
       ctx.lineTo(width, height);
       ctx.stroke();
-      // determine y-axis intervals based on difference between yMin & yMax
-      switch (Math.floor((yMax - yMin) / 500)) {
-        case 0:
-          interval = 25;
-          break;
-        case 1:
-          interval = 50;
-          break;
-        case 2:
-          interval = 100;
-          break;
-        case 3:
-        case 4:
-        case 5:
-          interval = 250;
-          break;
-        default:
-          interval = 500;
-      }
-      // fill in y-axis interval labels
-      interval = interval * 10 / ySteps; // double interval for small screen
-      graphMin = Math.floor(yMin / interval);
+      // Fill in y-axis interval labels
       ctx.textBaseline = 'middle';
-      for (i = 1; i <= ySteps; i++) {
-        ctx.fillText(graphMin + i * interval, 0, height + 10 - i * 25);
+      for (i = 0; i <= ySteps; i++) {
+        ctx.fillText(yMax - i * yInterval, 0, (yPadding + (i * height / (ySteps + 1))));
       }
-      // add x-axis label
+      // Add x-axis label
       ctx.textBaseline = top;
       ctx.fillText('Calorie totals for the last ' + count + ' days', 60, height + 10);
-      // plot line graph
+      // Plot line graph
       ctx.beginPath();
       ctx.strokeStyle = '#337ab7';
-      ctx.moveTo(xPadding, height - data[0] * yScale);
+      ctx.moveTo(xPadding, height - (data[0] - yMin) * yScale);
       for (i = 1; i < count; i++) {
-        //console.log(xPadding + xScale * i, height - points[i].get('calories'));
-        ctx.lineTo(xPadding + xScale * i, height - data[i] * yScale);
+        ctx.lineTo(xPadding + xScale * i, height - (data[i] - yMin) * yScale);
       }
       ctx.stroke();
+      // Plot data points
       for (i = 0; i < count; i++) {
         ctx.beginPath();
-        ctx.arc(xPadding + xScale * i, height - data[i] * yScale, 2, 0, 2 * Math.PI, true);
+        ctx.arc(xPadding + xScale * i, height - (data[i] - yMin) * yScale, 2, 0, 2 * Math.PI, true);
         ctx.fill();
       }
+      // Show button to hide graph on small screens in portrait
       if (window.screen.width < 400) {
         graphBtn.removeClass('hidden');
       } else {
@@ -230,6 +223,15 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       }
     }
   });
+
+  // Display message briefly then hide graph div if graph cannot be drawn
+  function graphAlert() {
+    alertGraph.removeClass('hidden');
+    setTimeout(function() {
+      alertGraph.addClass('hidden');
+      graphDiv.addClass('hidden');
+    }, 3000);
+  }
 
   // set up model for food items
   var Food = Backbone.Model.extend({
@@ -250,8 +252,7 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
     }
   });
 
-  /* Build html to place food item into the right-hand div table, which is the list display.
-  Each item will be one row. */
+  // Build html to display food item as a row in the food table, which all lists use.
   var FoodView = Backbone.View.extend({
 
     tagName: 'tr',
@@ -275,44 +276,55 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       return this;
     },
 
-    // only add food if Today is not the open list
+    // When the Add button or number of servings in the last food table column is clicked
     addFood: function() {
+      // Message to update totals for any food selected
       messages.trigger('countFood', this.model);
+      // Add to Today list; no net effect if already on it
       this.model.set({
         today: true
       });
+      // Message to check if food from database is already on My Food list
       if (whichList === 'apiResults') {
         messages.trigger('foodToAdd', this.model);
       } else {
+        // If from Today or My Food lists, increase number of servings
         this.incrementServings();
       }
+      // All event handlers return false to prevent bubbling up and default page refresh
       return false;
     },
 
+    // Update servings on food model
     incrementServings: function() {
       var newServings = this.model.get('servings') + 1;
       this.model.set({
         servings: newServings
       });
+      // Change displayed # servings if Today list is open
       if (whichList === 'today') {
         this.$('.option').text(newServings);
       }
       return false;
     },
 
+    // Only available if Today or My Food lists are open
     removeFood: function() {
-      // Remove if not on Today's Food list
+      // Remove if not on Today list
       if (!this.model.get('today')) {
+        // Message to remove from Foods collection
         messages.trigger('removeFood', this.model);
+        // Today list can't be open, so message to re-render updated My List
         messages.trigger('reviseMyList');
         return;
       }
-      // Must be removed from Today's Food first
+      /* On Today list, so alert if trying to remove from other list. Test is
+      more general in case other lists were to be added */
       if (whichList !== 'today') {
-        alert('Foods on the Today\'s Food list cannot be removed');
+        alert('Foods on the Today list cannot be removed');
         return;
       }
-      // On Today's Food list
+      // On Today list and Today is the open list, so decrease # servings
       var newServings = this.model.get('servings') - 1;
       // Servings > 1, so decrement & adjust totals
       if (newServings) {
@@ -320,8 +332,9 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
           servings: newServings
         });
         this.$('.option').text(newServings);
+        // Update totals
         messages.trigger('adjustTotalsDown', this.model);
-        // Servings = 1, so decrement & remove from Today's Food
+        // Servings = 1, so decrement & remove from Today list
       } else {
         this.model.set({
           servings: newServings
@@ -330,6 +343,7 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
           today: false
         });
         messages.trigger('adjustTotalsDown', this.model);
+        // Message to re-render updated Today list
         messages.trigger('reviseToday');
       }
     }
@@ -342,19 +356,24 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
 
     initialize: function() {
       this.url = fbUrl + id + '/food';
+      // Two messages can be sent from a foodview
       this.listenTo(messages, 'foodToAdd', this.checkFood);
+      this.listenTo(messages, 'removeFood', this.removeFood);
+      // Three messages can be sent from appView
       this.listenTo(messages, 'closeList', this.clearShow);
       this.listenTo(messages, 'newDay', this.clearToday);
       this.listenTo(messages, 'searchList', this.searchList);
-      this.listenTo(messages, 'removeFood', this.removeFood);
     },
 
+    // See if food from database is already in collection
     checkFood: function(food) {
       var found = this.findWhere({
         itemId: food.get('itemId')
       });
+      // If not, add it. New food has 1 as default # servings.
       if (!found) {
         this.add(food.attributes);
+        // If it is, increment servings by 1 and update model
       } else {
         var newServings = found.get('servings') + 1;
         found.set({
@@ -363,6 +382,8 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       }
     },
 
+    /* Set all foods to not display. This is necessary when lists are closed, so
+    the next list displayed will not retain all the items from the old list */
     clearShow: function() {
       var foodArray = [];
       this.each(function(food) {
@@ -374,6 +395,8 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       this.reset(foodArray);
     },
 
+    /* Empty the Today list and set servings of all foods on My List to 0
+    when a new day is started */
     clearToday: function() {
       var foodArray = [];
       this.each(function(food) {
@@ -386,32 +409,33 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       this.reset(foodArray);
     },
 
+    // Search for foods on My List, which could grow quite large over time
     searchList: function(phrase) {
       // turn search phrase into array of terms
       var words = phrase.split(' '),
         showThis,
         item,
         found,
-        foodArray = [];
-      // search each item name field for each search term
+        foodArray = []; // foodArray will hold the matches
+      // Search each item's name field for each search term
       this.each(function(food) {
-        // set display flag to true
+        // Set display flag to true
         showThis = true;
         item = food.get('item');
         item = item.toLowerCase();
         for (var i = words.length - 1; i >= 0; i--) {
-          // break loop and set display flag to false if any term is not found
+          // Break loop and set display flag to false if any term is not found
           if (item.indexOf(words[i].toLowerCase()) < 0) {
             showThis = false;
             break;
           }
         }
-        // if all terms were found, display flag is still set to true
+        // If all terms were found, display flag is still set to true
         food.set({
           show: showThis
         });
         if (showThis) {
-          // at least one food item matched
+          // At least one food item matched
           found = true;
         }
         foodArray.push(food);
@@ -425,23 +449,22 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
     }
   });
 
-  /* Set up list views for Today's Food, My Food List and resluts of searching My Food List,
-  all of which use the same basic list, showing or hiding items as appropriate. */
+  /* Set up list views for Today, My Food and results of searching My Food list,
+  all of which use the same collection, showing or hiding items as appropriate. */
   var FoodListView = Backbone.View.extend({
 
     tagName: 'tbody',
 
-    /* which list to initialize is passed in as the option parameter,
-    defaulting to Today's Food if option is null */
+    /* The list to initialize and whether a search of My List returned results are
+    passed in as @params.option and @params.isFound */
     initialize: function(params) {
       this.option = params.option;
       this.isFound = params.isFound;
-      // 'resultsReady' signals to display search results from My Food
-      this.listenTo(messages, 'resultsReady', this.showResults);
-      // 'showMyList' signals to show My Food list
+      // appView sends 'showMyList' message to show My Food list
       this.listenTo(messages, 'showMyList', this.showAll);
-      // remove view if API search returns success
+      // Remove view if a different list will be opened
       this.listenTo(messages, 'closeList', this.close);
+      // Show My List, search results or Today (default) based on value of 'option'
       switch (this.option) {
         case 'all':
           this.showAll();
@@ -454,9 +477,13 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       }
     },
 
+    /* @optionAdd is a flag to display 'Add' instead of hte number of servings
+    in the last column of the food table */
     render: function(optionAdd) {
       var view,
         list = this;
+      /* Traverse the collection, creating and appending a foodview for each
+      food that has 'show' set to true */
       list.collection.each(function(food) {
         if (food.get('show')) {
           view = new FoodView({
@@ -465,16 +492,10 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
           if (optionAdd) {
             view.$('.option').text('Add');
           }
-          /*if (whichList !== 'results') {
-              view.$('.item').hover( function() {
-                  $(this).find('.delete').css('visibility', 'visible');
-              }, function() {
-                  $(this).find('.delete').css('visibility', 'hidden');
-              });
-          }*/
           view.$el.appendTo(list.$el);
         }
       });
+      // Only activate the remove button if Today or My List are displayed
       list.$('.delete').css('visibility', 'hidden');
       if (whichList !== 'results') {
         list.$('.item').hover(function() {
@@ -486,7 +507,7 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       foodTable.append(list.$el);
     },
 
-    // set title, last field heading and 'show' property flag to display Today's food
+    // Set title, last field heading and 'show' property flag to display the Today list
     showToday: function() {
       title.html('Today');
       optionHead.html('#');
@@ -507,9 +528,9 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       return false;
     },
 
-    // filter list for search results
+    // Set title, last field heading and enable the 'Done' button to display search results
     showResults: function(isFound) {
-      // display results if at least one match found
+      // Display results if at least one match found
       if (isFound) {
         title.html('Add to Today');
         optionHead.text('+');
@@ -517,12 +538,12 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
         done.removeClass('hidden');
         whichList = 'results';
       } else {
-        // use title field to display failure message
+        // Use title field to display failure message
         title.html('No matches. Try again or search the database');
       }
     },
 
-    // set title, last field heading and 'show' property flag to display My Food List
+    // Set title, last field heading, 'show' flag and enable the 'Done' button to display My List
     showAll: function() {
       // if My List is already displayed, do nothing
       if (whichList === 'all') {
@@ -541,22 +562,20 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
     }
   });
 
-  // set up view to display API results
+  // Set up view to display results from online database
   var ApiResultsView = Backbone.View.extend({
 
     tagName: 'tbody',
 
+    // Results from API call passed in as @params.results
     initialize: function(params) {
       title.html('Add to Today');
-      // results from call and messages object passed in on instantiation
       whichList = 'apiResults';
       this.results = params.results;
-      // remove view if new API search returns success
-      this.listenTo(messages, 'successAPI', this.close);
-      // remove view if Show My List button clicked
+      // Remove view if a different or new API results list will be displayed
       this.listenTo(messages, 'closeList', this.close);
       this.render();
-      // set last field header
+      // Set last field header
       optionHead.text('+');
     },
 
@@ -670,8 +689,8 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
         .done(function(result) {
           var results = result.hits;
           searchDbase.attr('value', 'in database');
-          if (!results) {
-            title.html('No matches. Try again or search the database');
+          if (results.length === 0) {
+            title.html('No matches. Try again or search the database.');
           } else {
             // pass results to initialize new results list display
             apiResultsView = new ApiResultsView({
@@ -680,7 +699,7 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
           }
         })
         .fail(function() {
-          title.html('Search request failed. Please check your Internet connection and try again');
+          title.html('Search request failed. Please check your Internet connection and try again.');
         });
       return false;
     },
@@ -695,14 +714,16 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
       return false;
     },
 
-    // show My Foods List
+    // show My Food List
     showMyList: function() {
-      // if apiResultsView is open, close it and initialize foodListView to show the whole list
-      messages.trigger('closeList'); // signal any open list view to close
+      // Message to close any open list
+      messages.trigger('closeList');
       foodListView = new FoodListView({
         collection: foodList,
+        // Option 'all' will display My Food list
         option: 'all'
       });
+      // Hide My List button since My Food list will be open
       listBtn.addClass('hidden');
       return false;
     },
@@ -723,6 +744,7 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
         collection: foodList
       });
       listBtn.removeClass('hidden');
+      scrollTo(0, 0);
     },
 
     openListResults: function(isFound) {
@@ -741,7 +763,7 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
     appview;
   if (id) {
     id = encodeURIComponent(id).replace(/\./g, '%2E');
-    appview = new AppView();
+    startUp();
   } else {
     signIn.modal({
       keyboard: false
@@ -759,13 +781,24 @@ $(function() { // wrap in onReady function so DOM is ready for Backbone and code
         inputError.addClass('hidden');
       }, 3000);
       return;
-    }
-    else {
+    } else {
       id = encodeURIComponent(userInput).replace(/\./g, '%2E');
       localStorage.setItem('food-diary-id', id);
       id = encodeURIComponent(id).replace(/\./g, '%2E');
       signIn.modal('hide');
+      startUp();
+    }
+  }
+
+  // Sets up the app as an instance of AppView, or displays an error message
+  function startUp() {
+    try {
       appview = new AppView();
+    } catch (e) { // Replaces the alert text used when a graph cannot be diplayed, adds red background
+      alertGraph.text('Sorry, but the app was unable to start. Please check your Internet connection ' +
+        'and try again, or try later.');
+      alertGraph.addClass('alert alert-danger');
+      alertGraph.removeClass('hidden');
     }
   }
 });

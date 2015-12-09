@@ -32,17 +32,18 @@ h3 {
   padding-left: 5px;
 }
 
+.modal-content {
+  font-family: 'Indie Flower', sans-serif;
+  color: #337ab7;
+  padding: 10px;
+}
+
 .totals-header {
-  margin-right: 1px;
+  margin-bottom: 5px;
 }
 
 .totals {
-  height: 40px;
-  margin-top: 10px;
-}
-
-form {
-  padding-top: 10px;
+  margin-bottom: 10px;
 }
 
 .form-group {
@@ -61,7 +62,7 @@ label {
 
 .btn {
   font-family: 'Indie Flower', sans-serif;
-  margin: 0;
+  margin: 0 5px 0 0;
   padding: 2px 5px;
 }
 
@@ -70,7 +71,14 @@ label {
 }
 
 .done {
-  margin: 0 0 0 5px;
+  margin-left: 5px;
+}
+
+.no-graph {
+  font-family: 'Indie Flower', sans-serif;
+  color: #337ab7;
+  width: 50%;
+  margin-left: 10px;
 }
 
 .table-btn {
@@ -88,7 +96,7 @@ label {
 }
 
 .food-table-header {
-  margin-right: -10px;
+  margin-right: 5px;
 }
 
 table {
@@ -102,7 +110,7 @@ table {
 }
 
 .table tbody tr td {
-  max-width: 300px;
+  max-width: 200px;
   padding: 4px;
 }
 
@@ -118,10 +126,22 @@ table {
 }
 
 @media (orientation: landscape) and (max-width: 700px) {
+  label {
+    font-size: 5.5vmin;
+  }
+
   .second-col {
     padding: 0;
     position: relative;
     right: 15px;
+  }
+
+  .no-graph {
+    margin: 20px 0 0 50px;
+  }
+
+  .table tbody tr td {
+    max-width: 300px;
   }
 }
 
@@ -130,8 +150,16 @@ table {
     height: 80px;
   }
 
+  .no-graph {
+    margin: 20px 0 0 50px;
+  }
+
   .table thead tr th {
     font-size: 4vmin;
+  }
+
+  .table tbody tr td {
+    max-width: 300px;
   }
 
   .btn {
