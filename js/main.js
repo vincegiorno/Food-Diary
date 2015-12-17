@@ -159,7 +159,7 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
       });
       // Don't graph if less than 2 points
       if (points.length < 2) {
-        graphAlert();
+        this.graphAlert();
         return;
       }
       // Limit the days to no more than 14
@@ -175,7 +175,7 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
       }
       // Don't graph, show message if totals all 0
       if (yMax === 0) {
-        graphAlert();
+        this.graphAlert();
         return;
       }
       // Round yMin down and yMax up to nearest 100
@@ -222,17 +222,19 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
       } else {
         graphBtn.addClass('hidden');
       }
+    },
+
+    graphAlert: function() {
+      alertGraph.removeClass('hidden');
+      setTimeout(function() {
+        alertGraph.addClass('hidden');
+        graphDiv.addClass('hidden');
+      }, 3000);
     }
   });
 
   // Display message briefly then hide graph div if graph cannot be drawn
-  function graphAlert() {
-    alertGraph.removeClass('hidden');
-    setTimeout(function() {
-      alertGraph.addClass('hidden');
-      graphDiv.addClass('hidden');
-    }, 3000);
-  }
+
 
   // set up model for food items
   var Food = Backbone.Model.extend({
