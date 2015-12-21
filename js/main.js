@@ -1,33 +1,5 @@
-$(function() { // Wrap in onReady function so DOM is ready for Backbone and code is isolated
-
   // Cache jQuery objects, create messages object, declare app-wide variables
-  var totalsDiv = $('#totals-div'),
-    searchBox = $('#searchbox'),
-    searchDbase = $('#search-dbase'),
-    searchMyList = $('#search-my-list'),
-    listBtn = $('#show-list'),
-    graphDiv = $('#graph-div'),
-    alertGraph = $('#alert-graph'),
-    graphBtn = $('#graph-btn'),
-    title = $('#table-title'),
-    done = $('#done'),
-    optionHead = $('#option-head'),
-    foodTable = $('#food-table'),
-    messages = _.extend({}, Backbone.Events),
-    totals, days, totalsView,
-    foodList, foodListView,
-    graph,
-    apiResultsView,
-    appView,
-    whichList; // WhichList keeps track of which list is being displayed
-
-  Backbone.View.prototype.close = function() {
-    this.undelegateEvents();
-    this.remove();
-    whichList = '';
-  };
-
-  // Starting values for the running daily totals displayed in the left-hand div
+    // Starting values for the running daily totals displayed in the left-hand div
   var Totals = Backbone.Model.extend({
     defaults: function() {
       return {
@@ -46,10 +18,11 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
 
     className: 'row',
 
-    template: _.template($('#totals-template').html()),
+    //template: _.template($('#totals-template').html()),
 
     // Model will be passed in on instantiation
     initialize: function() {
+      this.template = _.template($('#totals-template').html());
       this.render();
       this.listenTo(this.model, 'change', this.render);
       // A foodView signals 'countFood' when a food is added or servings increased
@@ -104,10 +77,11 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
   // Set up collection defaults, Firebase connection
   var Days = Backbone.Firebase.Collection.extend({
 
-    model: Totals,
+    //model: Totals,
 
     // The URL cannot be set when main.js loads, because it can depend on user input
     initialize: function() {
+      this.model = Totals;
       this.url = fbUrl + id + '/days';
     }
   });
@@ -258,9 +232,10 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
 
     tagName: 'tr',
 
-    template: _.template($('#food-template').html()),
+    //template: _.template($('#food-template').html()),
 
     initialize: function() {
+      this.template = _.template($('#food-template').html());
       this.render();
     },
 
@@ -353,9 +328,10 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
 
   var FoodList = Backbone.Firebase.Collection.extend({
 
-    model: Food,
+    //model: Food,
 
     initialize: function() {
+      this.model = Food;
       this.url = fbUrl + id + '/food';
       // A foodview signals when a food is added or removed
       this.listenTo(messages, 'foodToAdd', this.checkFood);
@@ -785,12 +761,38 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
       });
     }
   });
-  // id will be used to access the proper Firebase data
-  var id = localStorage.getItem('food-diary-id'),
+
+  var totalsDiv = $('#totals-div'),
+    searchBox = $('#searchbox'),
+    searchDbase = $('#search-dbase'),
+    searchMyList = $('#search-my-list'),
+    listBtn = $('#show-list'),
+    graphDiv = $('#graph-div'),
+    alertGraph = $('#alert-graph'),
+    graphBtn = $('#graph-btn'),
+    title = $('#table-title'),
+    done = $('#done'),
+    optionHead = $('#option-head'),
+    foodTable = $('#food-table'),
     signIn = $('#sign-in'),
     idBox = $('#idBox'),
     inputError = $('#input-error'),
-    appview;
+    messages = _.extend({}, Backbone.Events),
+    totals, days, totalsView,
+    foodList, foodListView,
+    graph,
+    whichList, // whichList keeps track of which list is being displayed
+    apiResultsView,
+    appView;
+
+  Backbone.View.prototype.close = function() {
+    this.undelegateEvents();
+    this.remove();
+    whichList = '';
+  };
+
+  var id = localStorage.getItem('food-diary-id');
+  // id will be used to access the proper Firebase data
   if (id) {
     /* Firebase addresses are URLs, so illegal characters must be replaced. For
     some reason, this must be done twice or Firebase throws an error. The user
@@ -842,4 +844,3 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
       alertGraph.removeClass('hidden');
     }
   }
-});
