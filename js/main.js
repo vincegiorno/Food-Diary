@@ -224,6 +224,7 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
       }
     },
 
+    // If graph cannot be drawn, display message briefly then hide graph div
     graphAlert: function() {
       alertGraph.removeClass('hidden');
       setTimeout(function() {
@@ -233,10 +234,7 @@ $(function() { // Wrap in onReady function so DOM is ready for Backbone and code
     }
   });
 
-  // Display message briefly then hide graph div if graph cannot be drawn
-
-
-  // set up model for food items
+  // Set up model for food items
   var Food = Backbone.Model.extend({
     defaults: function() {
       return {
