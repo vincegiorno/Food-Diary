@@ -23,18 +23,18 @@
         this.render();
         this.listenTo(this.model, 'change', this.render);
         // A foodView signals 'countFood' when a food is added or servings increased
-        this.listenTo(messages, 'countFood', this.adjustTotalsUp);
+        this.listenTo(app.messages, 'countFood', this.adjustTotalsUp);
         // or 'adjustTotalsDown' when servings are decreased
-        this.listenTo(messages, 'adjustTotalsDown', this.adjustTotalsDown);
+        this.listenTo(app.messages, 'adjustTotalsDown', this.adjustTotalsDown);
         // appView signals 'newDay' when 'New day' button is clicked
-        this.listenTo(messages, 'newDay', this.saveDay);
+        this.listenTo(app.messages, 'newDay', this.saveDay);
       },
 
       render: function() {
-        totalsDiv.empty();
+        app.totalsDiv.empty();
         this.$el.empty();
         this.$el.append(this.template(this.model.toJSON()));
-        totalsDiv.append(this.$el);
+        app.totalsDiv.append(this.$el);
       },
 
       /* Update daily totals when food added or servings incremented. The relevant
@@ -109,9 +109,9 @@
           width,
           height,
           ctx = this.ctx;
-        graphDiv.removeClass('hidden'); // In case 'hidden' was set previously
+        app.graphDiv.removeClass('hidden'); // In case 'hidden' was set previously
         // Set width dynamically
-        width = this.el.width = graphDiv.width() - 5;
+        width = this.el.width = app.graphDiv.width() - 5;
         // Compress graph on small screens
         if (window.screen.width < 700) {
           this.el.height = 170;
@@ -188,18 +188,18 @@
         }
         // Show button to hide graph on small screens in portrait
         if (window.screen.width < 400) {
-          graphBtn.removeClass('hidden');
+          app.graphBtn.removeClass('hidden');
         } else {
-          graphBtn.addClass('hidden');
+          app.graphBtn.addClass('hidden');
         }
       },
 
       // If graph cannot be drawn, display message briefly then hide graph div
       graphAlert: function() {
-        alertGraph.removeClass('hidden');
+        app.alertGraph.removeClass('hidden');
         setTimeout(function() {
-          alertGraph.addClass('hidden');
-          graphDiv.addClass('hidden');
+          app.alertGraph.addClass('hidden');
+          app.graphDiv.addClass('hidden');
         }, 3000);
       }
     });
@@ -251,14 +251,14 @@
       // When the Add button or number of servings in the last food table column is clicked
       addFood: function() {
         // Message to update totals for any food selected
-        messages.trigger('countFood', this.model);
+        app.messages.trigger('countFood', this.model);
         // Add to Today list; no net effect if already on it
         this.model.set({
           today: true
         });
         // Message to check if food from database is already on My Food list
-        if (whichList === 'apiResults') {
-          messages.trigger('foodToAdd', this.model);
+        if (app.whichList === 'apiResults') {
+          app.messages.trigger('foodToAdd', this.model);
         } else {
           // If from Today or My Food lists, increase number of servings
           this.incrementServings();
@@ -274,7 +274,7 @@
           servings: newServings
         });
         // Change displayed # servings if Today list is open
-        if (whichList === 'today') {
+        if (app.whichList === 'today') {
           this.$('.option').text(newServings);
         }
         return false;
@@ -285,14 +285,14 @@
         // Remove if not on Today list
         if (!this.model.get('today')) {
           // Message to remove from Foods collection
-          messages.trigger('removeFood', this.model);
+          app.messages.trigger('removeFood', this.model);
           // Today list can't be open, so message to re-render updated My List
-          messages.trigger('reviseMyList');
+          app.messages.trigger('reviseMyList');
           return;
         }
         /* On Today list, so alert if trying to remove from other list. Test is
         more general in case other lists were to be added */
-        if (whichList !== 'today') {
+        if (app.whichList !== 'today') {
           alert('Foods on the Today list cannot be removed');
           return;
         }
@@ -305,7 +305,7 @@
           });
           this.$('.option').text(newServings);
           // Update totals
-          messages.trigger('adjustTotalsDown', this.model);
+          app.messages.trigger('adjustTotalsDown', this.model);
           // Servings = 1, so decrement & remove from Today list
         } else {
           this.model.set({
@@ -314,9 +314,9 @@
           this.model.set({
             today: false
           });
-          messages.trigger('adjustTotalsDown', this.model);
+          app.messages.trigger('adjustTotalsDown', this.model);
           // Message to re-render updated Today list
-          messages.trigger('reviseToday');
+          app.messages.trigger('reviseToday');
         }
       }
     });
@@ -329,14 +329,14 @@
         this.model = Food;
         this.url = fbUrl + id + '/food';
         // A foodview signals when a food is added or removed
-        this.listenTo(messages, 'foodToAdd', this.checkFood);
-        this.listenTo(messages, 'removeFood', this.removeFood);
+        this.listenTo(app.messages, 'foodToAdd', this.checkFood);
+        this.listenTo(app.messages, 'removeFood', this.removeFood);
         // appView signals to close any open list before a new one open
-        this.listenTo(messages, 'closeList', this.clearShow);
+        this.listenTo(app.messages, 'closeList', this.clearShow);
         // appview signals when a new day is started
-        this.listenTo(messages, 'newDay', this.clearToday);
+        this.listenTo(app.messages, 'newDay', this.clearToday);
         // appview signals when
-        this.listenTo(messages, 'searchList', this.searchList);
+        this.listenTo(app.messages, 'searchList', this.searchList);
       },
 
       // See if food from database is already in collection
@@ -416,7 +416,7 @@
         });
         this.reset(foodArray);
         // Message appView so it can display the results
-        messages.trigger('listSearchComplete', found);
+        app.messages.trigger('listSearchComplete', found);
       },
 
       removeFood: function(food) {
@@ -436,9 +436,9 @@
         this.option = params.option;
         this.isFound = params.isFound;
         // appView sends 'showMyList' message to show My Food list
-        this.listenTo(messages, 'showMyList', this.showAll);
+        this.listenTo(app.messages, 'showMyList', this.showAll);
         // Remove view if a different list will be opened
-        this.listenTo(messages, 'closeList', this.close);
+        this.listenTo(app.messages, 'closeList', this.close);
         // Show My List, search results or Today (default) based on value of 'option'
         switch (this.option) {
           case 'all':
@@ -472,22 +472,22 @@
         });
         // Only activate the remove button if Today or My List are displayed
         list.$('.delete').css('visibility', 'hidden');
-        if (whichList !== 'results') {
+        if (app.whichList !== 'results') {
           list.$('.item').hover(function() {
             $(this).find('.delete').css('visibility', 'visible');
           }, function() {
             $(this).find('.delete').css('visibility', 'hidden');
           });
         }
-        foodTable.append(list.$el);
+        app.foodTable.append(list.$el);
       },
 
       // Set title, last field heading and 'show' property flag to display the Today list
       showToday: function() {
-        title.html('Today');
-        optionHead.html('#');
-        done.addClass('hidden');
-        whichList = 'today';
+        app.title.html('Today');
+        app.optionHead.html('#');
+        app.done.addClass('hidden');
+        app.whichList = 'today';
         this.collection.each(function(food) {
           if (food.get('today')) {
             food.set({
@@ -507,33 +507,33 @@
       showResults: function(isFound) {
         // Display results if at least one match found
         if (isFound) {
-          title.html('Add to Today');
-          optionHead.text('+');
+          app.title.html('Add to Today');
+          app.optionHead.text('+');
           this.render(true);
-          done.removeClass('hidden');
-          whichList = 'results';
+          app.done.removeClass('hidden');
+          app.whichList = 'results';
         } else {
           // Use title field to display failure message
-          title.html('No matches. Try again or search the database');
+          app.title.html('No matches. Try again or search the database');
         }
       },
 
       // Set title, last field heading, 'show' flag and enable the 'Done' button to display My List
       showAll: function() {
         // if My List is already displayed, do nothing
-        if (whichList === 'all') {
+        if (app.whichList === 'all') {
           return;
         }
-        title.html('My List');
-        optionHead.text('+');
+        app.title.html('My List');
+        app.optionHead.text('+');
         this.collection.each(function(food) {
           food.set({
             show: true
           });
         });
         this.render(true);
-        done.removeClass('hidden');
-        whichList = 'all';
+        app.done.removeClass('hidden');
+        app.whichList = 'all';
       }
     });
 
@@ -544,14 +544,14 @@
 
       // Results from API call passed in as @params.results
       initialize: function(params) {
-        title.html('Add to Today');
-        whichList = 'apiResults';
+        app.title.html('Add to Today');
+        app.whichList = 'apiResults';
         this.results = params.results;
         // Remove view if a different or new API results list will be displayed
-        this.listenTo(messages, 'closeList', this.close);
+        this.listenTo(app.messages, 'closeList', this.close);
         this.render();
         // Set last field header
-        optionHead.text('+');
+        app.optionHead.text('+');
       },
 
       render: function() {
@@ -580,10 +580,16 @@
         }
         this.$('.delete').css('visibility', 'hidden');
         // Insert into DOM with one draw
-        foodTable.append(this.$el);
-        done.removeClass('hidden');
+        app.foodTable.append(this.$el);
+        app.done.removeClass('hidden');
       }
     });
+
+    var totals, days, totalsView,
+    foodList, foodListView,
+    graph,
+    apiResultsView,
+    appView;
 
     var AppView = Backbone.View.extend({
 
@@ -626,11 +632,11 @@
           });
         });
         // foodListView messages when collection search results are ready
-        this.listenTo(messages, 'listSearchComplete', this.openListResults);
-        // A foodView messages when a food is removed
-        this.listenTo(messages, 'reviseMyList', this.showMyList);
-        // A foodView messages when a food's servings decrease to 0
-        this.listenTo(messages, 'reviseToday', this.goToday);
+        this.listenTo(app.messages, 'listSearchComplete', this.openListResults);
+        // A foodView app.messages when a food is removed
+        this.listenTo(app.messages, 'reviseMyList', this.showMyList);
+        // A foodView app.messages when a food's servings decrease to 0
+        this.listenTo(app.messages, 'reviseToday', this.goToday);
       },
 
       events: {
@@ -645,9 +651,9 @@
       /* When a user clicks the 'New day' button */
       changeDay: function() {
         // Signal totalsViw to save the old day and foodList to clear the Today list
-        messages.trigger('newDay');
+        app.messages.trigger('newDay');
         // Close any open list
-        messages.trigger('closeList');
+        closeLists();
         // Same workaround as in initialize
         totalsView = new TotalsView({
           model: new Totals()
@@ -667,7 +673,7 @@
       // Database call
       searchAPI: function() {
         // Grab and check searchbox text
-        var phrase = searchBox.val();
+        var phrase = app.searchBox.val();
         console.log(phrase);
         if (phrase === '') {
           return false;
@@ -676,15 +682,15 @@
         var queryUrl = ntrxUrl + phrase; // URL base stored in config.js
         /* Close any open list. If the search returns results, these will be displayed
         instead. If not, a message will be displayed in the table title graph. */
-        messages.trigger('closeList');
+        closeLists();
         // Change the value of the search button to indicate a seach is in progress
-        searchDbase.attr('value', 'Searching...');
+        app.searchDbase.attr('value', 'Searching...');
         $.getJSON(queryUrl, ntrxParams) // search params stored in config.js
           .done(function(result) {
             var results = result.hits;
-            searchDbase.attr('value', 'in database');
+            app.searchDbase.attr('value', 'in database');
             if (results.length === 0) {
-              title.html('No matches. Try again or search the database.');
+              app.title.html('No matches. Try again or search the database.');
             } else {
               // Pass results to initialize new results list display
               apiResultsView = new ApiResultsView({
@@ -693,57 +699,57 @@
             }
           })
           .fail(function() {
-            title.html('Search request failed. Please check your Internet connection and try again.');
+            app.title.html('Search request failed. Please check your Internet connection and try again.');
           });
         return false;
       },
 
       // Initiate search on foodList collection
       searchList: function(phrase) {
-        phrase = searchBox.val();
+        phrase = app.searchBox.val();
         if (phrase === '') {
           return false;
         }
         // Close any open list to display results or failure message
-        messages.trigger('closeList');
+        closeLists();
         // Signal foodList to perform search
-        messages.trigger('searchList', phrase);
+        app.messages.trigger('searchList', phrase);
         return false;
       },
 
       // show My Food List
       showMyList: function() {
-        messages.trigger('closeList'); // Close any open list
+        closeLists(); // Close any open list
         foodListView = new FoodListView({
           collection: foodList,
           // Option 'all' parameter will cause foodListView to display My Food
           option: 'all'
         });
         // Hide My List button since My Food list will be open
-        listBtn.addClass('hidden');
+        app.listBtn.addClass('hidden');
         return false;
       },
 
       /* Allow user to hide or show graph on phones in portrait view, where the graph
       takes up the full width of the screen under the totals display */
       toggleGraph: function() {
-        if (graphDiv.hasClass('hidden')) {
-          graphDiv.removeClass('hidden');
-          graphBtn.text('Hide graph');
+        if (app.graphDiv.hasClass('hidden')) {
+          app.graphDiv.removeClass('hidden');
+          app.graphBtn.text('Hide graph');
         } else {
-          graphDiv.addClass('hidden');
-          graphBtn.text('Show graph');
+          app.graphDiv.addClass('hidden');
+          app.graphBtn.text('Show graph');
         }
       },
 
       // Show Today list
       goToday: function() {
-        messages.trigger('closeList');
+        closeLists();
         // Null 'option' parameter will cause foodListView to display Today
         foodListView = new FoodListView({
           collection: foodList
         });
-        listBtn.removeClass('hidden');
+        app.listBtn.removeClass('hidden');
         scrollTo(0, 0); // Top of page might be out of view
       },
 
@@ -755,39 +761,42 @@
           option: 'results',
           isFound: isFound
         });
+      },
+
+      // Utility to close lists and reset whichList
+      closeLists: function() {
+        app.messages.trigger('closeList');
+        app.whichList = '';
       }
     });
 
-    // Cache jQuery objects, create messages object, declare app-wide variables
-    var totalsDiv = $('#totals-div'),
-      searchBox = $('#searchbox'),
-      searchDbase = $('#search-dbase'),
-      searchMyList = $('#search-my-list'),
-      listBtn = $('#show-list'),
-      graphDiv = $('#graph-div'),
-      alertGraph = $('#alert-graph'),
-      graphBtn = $('#graph-btn'),
-      title = $('#table-title'),
-      done = $('#done'),
-      optionHead = $('#option-head'),
-      foodTable = $('#food-table'),
-      signIn = $('#sign-in'),
-      idBox = $('#idBox'),
-      inputError = $('#input-error'),
-      messages = _.extend({}, Backbone.Events),
-      totals, days, totalsView,
-      foodList, foodListView,
-      graph,
-      whichList, // keeps track of which list is being displayed
-      apiResultsView,
-      appView;
+    // Cache jQuery objects; create messages object, state variable
+    var app = {
+      totalsDiv: $('#totals-div'),
+      searchBox: $('#searchbox'),
+      searchDbase: $('#search-dbase'),
+      //searchMyList: $('#search-my-list'),
+      listBtn: $('#show-list'),
+      graphDiv: $('#graph-div'),
+      alertGraph: $('#alert-graph'),
+      graphBtn: $('#graph-btn'),
+      title: $('#table-title'),
+      done: $('#done'),
+      optionHead: $('#option-head'),
+      foodTable: $('#food-table'),
+      messages: _.extend({}, Backbone.Events),
+      whichList: '' // keeps track of which list is being displayed
+    };
 
     Backbone.View.prototype.close = function() {
       this.undelegateEvents();
       this.remove();
-      whichList = '';
+      //app.whichList = '';
     };
 
+    var signIn = $('#sign-in'),
+    idBox = $('#idBox'),
+    inputError = $('#input-error');
     function initialize() {
       var id = localStorage.getItem('food-diary-id');
       // id will be used to access the proper Firebase data
@@ -826,7 +835,7 @@
         localStorage.setItem('food-diary-id', id);
         // Encode again so Firebase doesn't throw error
         id = encodeURIComponent(id).replace(/\./g, '%2E');
-        // Hide the modal ans start the app
+        // Hide the modal and start the app
         signIn.modal('hide');
         startUp(id);
       }
@@ -837,10 +846,10 @@
       try {
         appview = new AppView([], {id: id});
       } catch (e) { // Replaces the alert text used when a graph cannot be diplayed, adds red background
-        alertGraph.text('Sorry, but the app was unable to start. Please check your Internet connection ' +
+        app.alertGraph.text('Sorry, but the app was unable to start. Please check your Internet connection ' +
           'and try again, or try later.');
           console.log(e);
-        alertGraph.addClass('alert alert-danger');
-        alertGraph.removeClass('hidden');
+        app.alertGraph.addClass('alert alert-danger');
+        app.alertGraph.removeClass('hidden');
       }
     }
