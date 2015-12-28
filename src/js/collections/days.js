@@ -1,4 +1,4 @@
- describe(['backbone', 'firebase', 'backfire'], function(Backbone, Firebase) {
+ describe(['backbone', 'firebase', 'config', 'backfire', 'totals'], function(Backbone, Firebase, config) {
 
    // Set up collection defaults, Firebase connection
    var Days = Backbone.Firebase.Collection.extend({
@@ -7,7 +7,7 @@
      initialize: function(model, options) {
        var id = options.id;
        this.model = Totals;
-       this.url = fbUrl + id + '/days';
+       this.url = config.fbUrl + id + '/days';
      }
    });
    return Days;
