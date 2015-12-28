@@ -1,10 +1,10 @@
-describe(['jquery', 'bootstrap'], function($) {
+define(['jquery', 'setup', 'views/appView', 'bootstrap'], function($, app, AppView) {
 
   var signIn = $('#sign-in'),
     idBox = $('#idBox'),
     inputError = $('#input-error');
 
-  function initialize() {
+  var initialize = function() {
     var id = localStorage.getItem('food-diary-id');
     // id will be used to access the proper Firebase data
     if (id) {
@@ -22,7 +22,7 @@ describe(['jquery', 'bootstrap'], function($) {
       signIn.modal('show');
       $('#sign-in-button').click(processId); // Activate 'Submit' button
     }
-  }
+  };
 
   // Handle string user inputs in modal textbox
   function processId() {

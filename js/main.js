@@ -791,7 +791,6 @@
     Backbone.View.prototype.close = function() {
       this.undelegateEvents();
       this.remove();
-      //app.whichList = '';
     };
 
     var signIn = $('#sign-in'),

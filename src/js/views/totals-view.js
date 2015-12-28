@@ -1,4 +1,4 @@
-describe(['jquery', 'backbone', 'underscore', 'setup'], function($, Backbone, _, app) {
+define(['jquery', 'backbone', 'underscore', 'setup'], function($, Backbone, _, app) {
   // View for displaying the totals
   var TotalsView = Backbone.View.extend({
 

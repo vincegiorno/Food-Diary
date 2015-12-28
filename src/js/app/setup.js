@@ -1,4 +1,4 @@
-describe(['jquery', 'backbone', 'underscore'], function($, Backbone, _) {
+define(['jquery', 'backbone', 'underscore'], function($, Backbone, _) {
 
   // Cache jQuery objects; create messages object, state variable
   var app = {

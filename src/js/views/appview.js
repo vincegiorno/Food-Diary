@@ -1,6 +1,6 @@
-describe(['jquery', 'backbone', 'setup', 'config', 'totals', 'totalsView', 'days', 'graph',
-  'foodlist', 'foodlistView', 'apiResultsView'
-], function($, Backbone, app, config) {
+define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-view',
+'collections/days', 'views/graph', 'collections/foodlist', 'views/foodlist-view', 'views/api-results-view'
+], function($, Backbone, app, config, Totals, TotalsView, Days, Graph, FoodList, FoodListView, ApiResultsView) {
 
   var totals, days, totalsView,
     foodList, foodListView,

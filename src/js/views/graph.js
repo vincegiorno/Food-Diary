@@ -1,4 +1,4 @@
-describe(['backbone', 'setup', 'jquery'], function(Backbone, app) {
+define(['backbone', 'setup', 'jquery'], function(Backbone, app) {
 
   // Draw a graph showing total calories for previous days, up to 14 days
   var Graph = Backbone.View.extend({
@@ -121,6 +121,6 @@ describe(['backbone', 'setup', 'jquery'], function(Backbone, app) {
       }, 3000);
     }
   });
-  
+
   return Graph;
 });

@@ -1,4 +1,4 @@
-describe(['jquery', 'backbone', 'underscore', 'setup'], function($, Backbone, _, app) {
+define(['jquery', 'backbone', 'underscore', 'setup'], function($, Backbone, _, app) {
 
   // Build html to display food item as a row in the food table, which all lists use.
   var FoodView = Backbone.View.extend({

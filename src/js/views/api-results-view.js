@@ -1,4 +1,4 @@
-describe(['jquery', 'backbone', 'setup'], function($, Backbone, app) {
+define(['jquery', 'backbone', 'setup'], function($, Backbone, app) {
 
   // Set up view to display results from online database
   var ApiResultsView = Backbone.View.extend({

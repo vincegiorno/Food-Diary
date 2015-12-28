@@ -8,12 +8,13 @@
   <title>Calories Diary</title>
 
 
-  <link rel="stylesheet" href="libs/bootstrap.min.css">
-  <link rel="stylesheet" href="libs/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/bootstrap-theme.css">
   <link rel="stylesheet" href="css/style.css">
+  <script data-main="js/main" src="js/libs/require-min.js"></script>
 </head>
 
-<body onload="initialize()">
+<body>
   <div class="modal fade bs-example-modal-sm" id="sign-in" tabindex="-1" role="dialog" aria-labelledby="sign in">
     <div class="modal-dialog modal-sm">
       <div class="modal-content">
@@ -93,16 +94,6 @@
       </div> <!-- food-table-div -->
     </div> <!-- row -->
   </div> <!-- container -->
-
-  <!-- Load JS libraries and app js -->
-  <script src="libs/jquery-min.js"></script>
-  <script src="libs/bootstrap.min.js"></script>
-  <script src="libs/underscore-min.js"></script>
-  <script src="libs/backbone-min.js"></script>
-  <script src="libs/firebase-min.js"></script>
-  <script src="libs/backbonefire.min.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/main.js"></script>
 
   <!-- Templates -->
   <script type="text/template" id="totals-template"> <!-- For displaying daily totals -->

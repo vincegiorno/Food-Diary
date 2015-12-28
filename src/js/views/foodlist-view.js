@@ -1,4 +1,4 @@
-describe(['jquery', 'backbone', 'setup'], function($, Backbone, app) {
+define(['jquery', 'backbone', 'setup', 'views/food-view'], function($, Backbone, app, FoodView) {
 
 /* Set up list views for Today, My Food and results of searching My Food list,
 all of which use the same collection, showing or hiding items as appropriate. */
