@@ -1,4 +1,4 @@
-define(['jquery', 'backbone', 'setup'], function($, Backbone, app) {
+define(['jquery', 'backbone', 'setup', 'models/food', 'views/food-view'], function($, Backbone, app, Food, FoodView) {
 
   // Set up view to display results from online database
   var ApiResultsView = Backbone.View.extend({

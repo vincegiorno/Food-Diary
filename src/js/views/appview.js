@@ -74,7 +74,7 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
       // Signal totalsViw to save the old day and foodList to clear the Today list
       app.messages.trigger('newDay');
       // Close any open list
-      closeLists();
+      this.closeLists();
       // Same workaround as in initialize
       totalsView = new TotalsView({
         model: new Totals()
@@ -100,13 +100,13 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
         return false;
       }
       phrase = encodeURIComponent(phrase); // format for URL query string
-      var queryUrl = ntrxUrl + phrase; // URL base stored in config.js
+      var queryUrl = config.ntrxUrl + phrase; // URL base stored in config.js
       /* Close any open list. If the search returns results, these will be displayed
       instead. If not, a message will be displayed in the table title graph. */
-      closeLists();
+      this.closeLists();
       // Change the value of the search button to indicate a seach is in progress
       app.searchDbase.attr('value', 'Searching...');
-      $.getJSON(queryUrl, ntrxParams) // search params stored in config.js
+      $.getJSON(queryUrl, config.ntrxParams) // search params stored in config.js
         .done(function(result) {
           var results = result.hits;
           app.searchDbase.attr('value', 'in database');
@@ -132,7 +132,7 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
         return false;
       }
       // Close any open list to display results or failure message
-      closeLists();
+      this.closeLists();
       // Signal foodList to perform search
       app.messages.trigger('searchList', phrase);
       return false;
@@ -140,7 +140,7 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
 
     // show My Food List
     showMyList: function() {
-      closeLists(); // Close any open list
+      this.closeLists(); // Close any open list
       foodListView = new FoodListView({
         collection: foodList,
         // Option 'all' parameter will cause foodListView to display My Food
@@ -165,7 +165,7 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
 
     // Show Today list
     goToday: function() {
-      closeLists();
+      this.closeLists();
       // Null 'option' parameter will cause foodListView to display Today
       foodListView = new FoodListView({
         collection: foodList
