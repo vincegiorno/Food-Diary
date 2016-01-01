@@ -1,5 +1,6 @@
 ### In a nutshell
-**Food Diary** keeps a record of daily calorie, fat and sodium intake. It uses the Nutrionix database to access nutrition information. In order to run the app, clone this directory and open index.html.
+**Food Diary** keeps a record of daily calorie, fat and sodium intake. It uses the Nutrionix database to access nutrition information. In order to run the app, clone the repository and open dist/index.html.
+
 ### The nut
 + Lists of food eaten on the current day and all foods selected while using the app are maintained, updated in real time and persevered in Firebase
 + Foods can be added to the daily list by searching the Nutrionix database or the personal list; they can also be removed from both lists
@@ -20,4 +21,3 @@ Click on the `New day` button to clear the daily totals and start over again for
 Once you have data saved for 2 previous days, the app will display a graph showing calorie totals for previous days, for a maximum of 14 days. Once you have more than 14 previous days, the earliest will drop off the graph each time a new day is added.
 
 P.S. If you know how to get around the formatting hacks I used to get Backbone (adding and retrieving new objects before using them) and Firebase (double encoding) to play nice, please drop me a line at vincegiorno324@gmail.com **Thanks!**
-
