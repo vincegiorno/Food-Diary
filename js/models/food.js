@@ -1,0 +1,1 @@
+define(["backbone"],function(t){var e=t.Model.extend({defaults:function(){return{itemId:"",item:"",brand:"",calories:0,totFat:0,satFat:0,sodium:0,servings:0,today:!0}}});return e});

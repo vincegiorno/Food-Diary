@@ -1,0 +1,1 @@
+define(["backbone","firebase","config","models/totals","backfire"],function(e,i,n,t){var a=e.Firebase.Collection.extend({initialize:function(e,i){var a=i.id;this.model=t,this.url=n.fbUrl+a+"/days"}});return a});
