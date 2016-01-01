@@ -1,0 +1,1 @@
+define([],function(){var e="7fe99a0e",a="2e8422defebd45960525ef1136a3fd46",t="https://blinding-torch-4046.firebaseIO.com/food-diary/",n="https://api.nutritionix.com/v1_1/search/",r={results:"0:30",fields:"item_id,item_name,brand_name,nf_calories,nf_total_fat,nf_saturated_fat,nf_sodium",appId:e,appKey:a};return{fbUrl:t,ntrxUrl:n,ntrxParams:r}});

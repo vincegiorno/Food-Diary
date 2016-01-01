@@ -57,7 +57,6 @@ define(['jquery', 'setup', 'views/appView', 'bootstrap'], function($, app, AppVi
     } catch (e) { // Replaces the alert text used when a graph cannot be diplayed, adds red background
       app.alertGraph.text('Sorry, but the app was unable to start. Please check your Internet connection ' +
         'and try again, or try later.');
-      console.log(e);
       app.alertGraph.addClass('alert alert-danger');
       app.alertGraph.removeClass('hidden');
     }

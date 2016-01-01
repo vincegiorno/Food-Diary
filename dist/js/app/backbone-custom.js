@@ -1,0 +1,1 @@
+define(["backbone"],function(e){return e.View.prototype.close=function(){this.undelegateEvents(),this.remove()},e});
