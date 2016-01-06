@@ -1,4 +1,4 @@
-define(['jquery', 'setup', 'views/appView', 'bootstrap'], function($, app, AppView) {
+define(['jquery', 'setup', 'views/appview', 'bootstrap'], function($, app, AppView) {
 
   var signIn = $('#sign-in'),
     idBox = $('#idBox'),
