@@ -39,7 +39,11 @@ define(['jquery', 'setup', 'views/appview', 'bootstrap'], function($, app, AppVi
     } else {
       // Encode valid input to remove illegal characters & put in local storage
       var id = encodeURIComponent(userInput).replace(/\./g, '%2E');
-      localStorage.setItem('food-diary-id', id);
+      try {
+        localStorage.setItem('food-diary-id', id);
+      } catch (e) {
+        console.log('Could not save ID in local storage');
+      }
       // Encode again so Firebase doesn't throw error
       id = encodeURIComponent(id).replace(/\./g, '%2E');
       // Hide the modal and start the app
