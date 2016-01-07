@@ -13,19 +13,22 @@
 </head>
 
 <body>
-  <div class="modal fade bs-example-modal-sm" id="sign-in" tabindex="-1" role="dialog" aria-labelledby="sign in">
+  <div class="modal bs-example-modal-sm" id="sign-in" tabindex="-1" role="dialog" aria-labelledby="sign in">
     <div class="modal-dialog modal-sm">
       <div class="modal-content">
-        <p>Either this is the first time you are using the app or it could not find an id in local storage.
-          Please enter the email address that Food Diary should use to identify itself:</p>
+        <p>Either this is the first time you are using the app or it could not find an id in local storage. Please enter the email
+          address that Food Diary should use to identify itself:</p>
         <div class="form-group">
           <input type="text" class="form-control" id="idBox" placeholder="Ex. name@somewhere.com">
           <input id="sign-in-button" class="btn btn-default input-btn" type="submit" value="Submit">
         </div>
         <p id="input-error" class="alert alert-warning hidden">Please enter a valid email address</p>
-      </div> <!-- modal-content -->
-    </div> <!-- modal-dialog -->
-  </div> <!-- modal -->
+      </div>
+      <!-- modal-content -->
+    </div>
+    <!-- modal-dialog -->
+  </div>
+  <!-- modal -->
   <div class="container">
     <div class="row">
       <div class="col-xs-12">
@@ -34,17 +37,22 @@
             <img src="images/nutrionix.png" alt="Nutrionix logo">
           </a>
         </h1>
-      </div> <!-- columns -->
-    </div> <!-- row -->
+      </div>
+      <!-- columns -->
+    </div>
+    <!-- row -->
     <div class="row">
       <div class="col-xs-12 col-sm-6 col-md-5 section">
         <div class="row">
           <div class="totals-header">
             <h3 class="pull-left">Today's totals</h3>
             <button id="new-day" type="button" class="btn btn-primary pull-right">New day</button>
-          </div> <!-- totals-header -->
-        </div> <!-- row -->
-        <div id="totals-div" class="totals"></div> <!-- Backbone will fill in the daily totals -->
+          </div>
+          <!-- totals-header -->
+        </div>
+        <!-- row -->
+        <div id="totals-div" class="totals"></div>
+        <!-- Backbone will fill in the daily totals -->
         <div class="row">
           <form>
             <div class="form-group">
@@ -52,28 +60,38 @@
               <input type="text" class="form-control" id="searchbox" placeholder="Ex: Kraft macaroni cheese">
               <input id="search-dbase" class="btn btn-default input-btn" type="submit" value="in database">
               <input id="search-my-list" class="btn btn-default input-btn" type="submit" value="in My Food">
-            </div> <!-- form-group -->
+            </div>
+            <!-- form-group -->
           </form>
-        </div> <!-- row -->
-      </div> <!-- columns -->
-      <div class="col-xs-12 col-sm-6 col-md-7 section"> <!-- graph moves underneath on phones in portrait -->
+        </div>
+        <!-- row -->
+      </div>
+      <!-- columns -->
+      <div class="col-xs-12 col-sm-6 col-md-7 section">
+        <!-- graph moves underneath on phones in portrait -->
         <div class="row">
           <div id="graph-div">
-            <p id="alert-graph" class="no-graph hidden">The data cannot be graphed. At least two days
-              must have been completed and all the calorie totals for completed days cannot be 0.</p>
+            <p id="alert-graph" class="no-graph hidden">The data cannot be graphed. At least two days must have been completed and all the calorie totals for completed days
+              cannot be 0.</p>
             <canvas id="graph"></canvas>
-          </div> <!-- graph-div -->
-        </div> <!-- row -->
-      </div> <!-- columns -->
-    </div> <!-- row -->
+          </div>
+          <!-- graph-div -->
+        </div>
+        <!-- row -->
+      </div>
+      <!-- columns -->
+    </div>
+    <!-- row -->
     <div class="row">
       <div class="food-table-header">
         <h3 id="table-title" class="pull-left">Today</h3>
         <button id="show-list" class="btn btn-default">My List</button>
         <button id="done" type="button" class="btn btn-primary pull-right done hidden">Done</button>
         <button id="graph-btn" type="button" class="btn btn-default pull-right hidden">Hide graph</button>
-      </div> <!-- food-table-header -->
-    </div> <!-- row -->
+      </div>
+      <!-- food-table-header -->
+    </div>
+    <!-- row -->
     <div class="row">
       <div id="food-table-div">
         <table id="food-table" class="table">
@@ -89,19 +107,24 @@
             </tr>
           </thead>
         </table>
-      </div> <!-- food-table-div -->
-    </div> <!-- row -->
-  </div> <!-- container -->
+      </div>
+      <!-- food-table-div -->
+    </div>
+    <!-- row -->
+  </div>
+  <!-- container -->
 
   <!-- Templates -->
-  <script type="text/template" id="totals-template"> <!-- For displaying daily totals -->
+  <script type="text/template" id="totals-template">
+    <!-- For displaying daily totals -->
     <div class="col-xs-6 col-md-12"><b>Calories: <%= Math.round(calories) %></b></div>
     <div class="col-xs-6 col-md-12 second-col"><b>Sodium (mg): <%= Math.round(sodium * 10)/10 %></b></div>
     <div class="col-xs-6 col-md-12"><b>Total fat (g): <%= Math.round(totFat * 10)/10 %></b></div>
     <div class="col-xs-6 col-md-12 second-col"><b>Saturated fat (g): <%= Math.round(satFat * 10)/10 %></b></div>
   </script>
 
-  <script type="text/template" id="food-template"> <!-- Each food is displayed as a table row -->
+  <script type="text/template" id="food-template">
+    <!-- Each food is displayed as a table row -->
     <td class="item">
       <%= item %>&nbsp;&nbsp;
         <button class="close delete">&times;</button>
@@ -121,7 +144,8 @@
     <td>
       <%= sodium %>
     </td>
-    <td> <!-- The last column displays the number of servings or an Add button -->
+    <td>
+      <!-- The last column displays the number of servings or an Add button -->
       <button class="option btn btn-default table-btn">
         <%= servings %>
       </button>

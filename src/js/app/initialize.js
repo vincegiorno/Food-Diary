@@ -41,7 +41,7 @@ define(['jquery', 'setup', 'views/appview', 'bootstrap'], function($, app, AppVi
       var id = encodeURIComponent(userInput).replace(/\./g, '%2E');
       localStorage.setItem('food-diary-id', id);
       // Encode again so Firebase doesn't throw error
-      //id = encodeURIComponent(id).replace(/\./g, '%2E');
+      id = encodeURIComponent(id).replace(/\./g, '%2E');
       // Hide the modal and start the app
       signIn.modal('hide');
       startUp(id);
