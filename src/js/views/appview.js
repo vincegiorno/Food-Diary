@@ -71,6 +71,9 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
 
     /* When a user clicks the 'New day' button */
     changeDay: function() {
+      if (totalsView.model.get('calories') === 0) {
+        return false;
+      }
       // Signal totalsViw to save the old day and foodList to clear the Today list
       app.messages.trigger('newDay');
       // Close any open list
@@ -95,7 +98,6 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
     searchAPI: function() {
       // Grab and check searchbox text
       var phrase = app.searchBox.val();
-      console.log(phrase);
       if (phrase === '') {
         return false;
       }
