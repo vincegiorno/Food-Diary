@@ -62,6 +62,7 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
 
     events: {
       'click #new-day': 'changeDay', // 'New day' button
+      'click #reset': 'reset', // 'Reset' button
       'click #search-dbase': 'searchAPI', // 'in database' button
       'click #search-my-list': 'searchList', // 'in My Food' button
       'click #show-list': 'showMyList', // 'My List' button
@@ -92,6 +93,11 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
       foodListView = new FoodListView({
         collection: foodList
       });
+    },
+
+    reset: function() {
+      localStorage.clear('food-diary-id');
+      document.location.reload(true);
     },
 
     // Database call
