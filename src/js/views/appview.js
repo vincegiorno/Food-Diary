@@ -1,5 +1,5 @@
 define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-view',
-'collections/days', 'views/graph', 'collections/foodlist', 'views/foodlist-view', 'views/api-results-view'
+  'collections/days', 'views/graph', 'collections/foodlist', 'views/foodlist-view', 'views/api-results-view'
 ], function($, Backbone, app, config, Totals, TotalsView, Days, Graph, FoodList, FoodListView, ApiResultsView) {
 
   var totals, days, totalsView,
@@ -52,6 +52,14 @@ define(['jquery', 'backbone', 'setup', 'config', 'models/totals', 'views/totals-
           collection: foodList
         });
       });
+
+      $('.btn-warning').css('visibility', 'hidden');
+      $('#totals-title').hover(function() {
+        $(this).children('.btn-warning').css('visibility', 'visible');
+      }, function() {
+        $(this).children('.btn-warning').css('visibility', 'hidden');
+      });
+
       // foodListView messages when collection search results are ready
       this.listenTo(app.messages, 'listSearchComplete', this.openListResults);
       // A foodView app.messages when a food is removed
