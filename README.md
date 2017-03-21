@@ -7,7 +7,7 @@
 + Running totals for calories, total fat, saturated fat and sodium are kept and displayed for the current day
 + Calorie totals going back 14 days are displayed in a graph
 
-###The shell
+### The shell
 To get started you need to enter an email address. This is just to ensure (in a casual way) that each user has a unique ID. The address is not used for any other purpose. This address is stored on your device in local storage with the key 'food-diary-id'. As long as you use the same email address, you should be able to use the app with your stored data on any other device as well. If you enter a wrong address (you see no data or the wrong data), or if the app says it cannot start and you know your Internet connection is good, click the `Reset` button, and you will be prompted to enter your email address again. The button is visible when you mouse over (or click on, when using a touch device) the "Today's totals" title, or the adjoining space where the hidden button is located. **Do not try to set the 'food-diary-id' value manually, since the app encodes the value before storing it to replace illegal Firebase address characters.** 
 
 Search for foods using the searchbox.
