@@ -1,5 +1,5 @@
 ### In a nutshell
-**Food Diary** keeps a record of daily calorie, fat and sodium intake. It uses the Nutrionix database to access nutrition information. In order to run the app, clone the repository and open *dist/index.html*
+**Food Diary** keeps a record of daily calorie, fat and sodium intake. It uses the Nutrionix database to access nutrition information. In order to run the app, go to https://vincegiorno.github.io/Food-Diary/
 
 ### The nut
 + Lists of food eaten on the current day and all foods selected while using the app are maintained, updated in real time and persevered in Firebase
